@@ -1,5 +1,5 @@
-# CPOA_Project
-Projet de CPOA askip
+# LMG_Project
+Projet de LMG askip
 
 
 Aide Project
