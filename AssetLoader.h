@@ -21,8 +21,8 @@ class AssetLoader{
 public:
     aiScene* _scene;
     AssetLoader();
-    void import(const std::string filename);
-    void loadData(std::vector<std::vector<glm::Vec3>>&);
+    bool import(const std::string filename);
+    bool loadData(std::vector<std::vector<glm::Vec3>>&);
 };
 
 

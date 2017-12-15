@@ -1,0 +1,1 @@
+/usr/bin/g++   -g   CMakeFiles/Projet_LMG.dir/AssetLoader.cpp.o CMakeFiles/Projet_LMG.dir/main.cpp.o CMakeFiles/Projet_LMG.dir/Model3D.cpp.o  -o Projet_LMG -rdynamic -lGL -lglut -lGLEW 

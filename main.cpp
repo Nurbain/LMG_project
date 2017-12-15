@@ -666,7 +666,7 @@ void idle( void )
  ******************************************************************************/
 int main( int argc, char** argv )
 {
-	std::cout << "TP4 - Lighting" << std::endl;
+    std::cout << "Projet LMG" << std::endl;
 
 	// Initialize the GLUT library
 	glutInit( &argc, argv );
@@ -683,7 +683,7 @@ int main( int argc, char** argv )
 	glutInitWindowSize( 640, 480 );
 	glutInitWindowPosition( 50, 50 );
 	// - create the window
-	glutCreateWindow( "TP4 - Lighting" );
+    glutCreateWindow( "Projet LMG" );
 
 	// Callbacks
 	// - callback called when displaying window (user custom fonction pointer: "void f( void )")

@@ -11,7 +11,7 @@ cmake_minimum_required( VERSION 3.0 )
 ##################################################################################
 
 # Project name
-project( TP4_Lighting)
+project( Projet_LMG)
 add_compile_options(-std=c++11 -Wall)
 
 ##################################################################################

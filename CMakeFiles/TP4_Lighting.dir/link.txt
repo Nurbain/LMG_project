@@ -1,0 +1,1 @@
+/usr/bin/g++   -g   CMakeFiles/TP4_Lighting.dir/AssetLoader.cpp.o CMakeFiles/TP4_Lighting.dir/main.cpp.o CMakeFiles/TP4_Lighting.dir/Model3D.cpp.o  -o TP4_Lighting -rdynamic -lGL -lglut -lGLEW 
