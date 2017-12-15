@@ -378,8 +378,7 @@ bool initializeShaderProgram()
 
 	// Vertex shader
 	const char* vertexShaderSource[] = {
-	    "#version 330 core                             \n"
-//	    "#version 130                                  \n"
+        "#version 310 es                             \n"
 		"                                              \n"
 		"// INPUT                                      \n"
 		"layout (location = 0) in vec3 position;     \n"
@@ -440,9 +439,10 @@ bool initializeShaderProgram()
 
 	// Fragment shader
 	const char* fragmentShaderSource[] = {
-	    "#version 330 core                                  \n"
-//	    "#version 130                                       \n"
-		"                                               \n"
+        "#version 310 es                                  \n"
+        "precision highp float;                           \n"
+        "                                               \n"
+        "                                               \n"
 		"// INPUT                                       \n"
 		"in vec4 vertexColor;                                 \n"
 		"                                               \n"
@@ -499,6 +499,16 @@ bool initializeShaderProgram()
 	if ( compileStatus == GL_FALSE )
 	{
 		std::cout << "Error: fragment shader "<< std::endl;
+
+        GLint logInfoLength = 0;
+        glGetShaderiv( fragmentShader, GL_INFO_LOG_LENGTH, &logInfoLength );
+        if ( logInfoLength > 0 )
+        {
+            GLchar* infoLog = new GLchar[ logInfoLength ];
+            GLsizei length = 0;
+            glGetShaderInfoLog( fragmentShader, logInfoLength, &length, infoLog );
+            std::cout << infoLog << std::endl;
+        }
 	}
 
 	glAttachShader( shaderProgram, vertexShader );
