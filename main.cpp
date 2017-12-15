@@ -283,7 +283,11 @@ bool initializeArrayBuffer()
 	std::vector< glm::vec3 > normals;
 	std::vector< GLuint > triangleIndices;
 	const int nb = 100;
-	waves( points, normals, triangleIndices, nb );
+
+    //Ici on prends les données #1
+    waves( points, normals, triangleIndices, nb );
+
+    //Puis on envoie dans le VBO
 	numberOfVertices_ = static_cast< int >( points.size() );
 	numberOfIndices_ = static_cast< int >( triangleIndices.size() );
 

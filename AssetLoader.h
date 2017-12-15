@@ -19,10 +19,20 @@
 
 class AssetLoader{
 public:
+    bool mIsInitialized;
     aiScene* _scene;
-    AssetLoader();
+    Assimp::Importer* _importer;
+    AssetLoader():mIsInitialized(false),_scene(nullptr){
+        _importer = new Assimp::Importer();
+        _importer->SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE,0);
+        _importer->GetErrorString();
+    }
+    ~AssetLoader(){
+        delete _importer;
+        _importer = nullptr;
+    }
     bool import(const std::string filename);
-    bool loadData(std::vector<std::vector<glm::Vec3>>&);
+    bool loadData(std::vector<std::vector<glm::vec3>>&);
 };
 
 

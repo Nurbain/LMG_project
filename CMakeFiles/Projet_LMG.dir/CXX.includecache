@@ -7,6 +7,42 @@
 #IncludeRegexTransform: 
 
 /adhome/q/qw/q.wendling/LMG_project/AssetLoader.cpp
+AssetLoader.h
+/adhome/q/qw/q.wendling/LMG_project/AssetLoader.h
+fstream
+-
+iostream
+-
+cstdio
+-
+stdexcept
+-
+assimp/Importer.hpp
+-
+
+/adhome/q/qw/q.wendling/LMG_project/AssetLoader.h
+iostream
+-
+vector
+-
+glm/glm.hpp
+-
+glm/gtc/type_ptr.hpp
+-
+glm/gtc/matrix_transform.hpp
+-
+assimp/Importer.hpp
+-
+assimp/scene.h
+-
+assimp/vector3.h
+-
+assimp/postprocess.h
+-
+assimp/DefaultLogger.hpp
+-
+assimp/LogStream.hpp
+-
 
 /adhome/q/qw/q.wendling/LMG_project/Model3D.cpp
 
@@ -199,6 +235,12 @@ types.h
 assimp/include/assimp/types.h
 
 assimp/include/assimp/quaternion.h
+
+assimp/include/assimp/quaternion.inl
+quaternion.h
+assimp/include/assimp/quaternion.h
+cmath
+-
 
 assimp/include/assimp/scene.h
 types.h
