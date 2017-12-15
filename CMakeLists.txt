@@ -53,7 +53,10 @@ else()
 endif()
 
 # glm
-include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/glm" )
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/glm" )
+
+# assimp
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/assimp/include" )
 
 ##################################################################################
 # Program
