@@ -18,7 +18,7 @@ bool AssetLoader::import(const std::string filename){
     }
 
     try{
-        //_scene = _importer->ReadFile(filename,aiProcessPreset_TargetRealtime_Quality);
+        _scene = const_cast<aiScene*>(_importer->ReadFile(filename,aiProcessPreset_TargetRealtime_Quality));
     }catch(std::runtime_error& err){
         std::cout << err.what();
         return false;

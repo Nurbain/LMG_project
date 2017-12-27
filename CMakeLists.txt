@@ -84,6 +84,10 @@ add_executable( ${PROJECT_NAME} ${srcList} ${resList} )
 # Graphics
 
 target_link_libraries( ${PROJECT_NAME} ${OPENGL_gl_LIBRARY} )
+
+target_link_libraries( ${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/assimp/lib/libassimp.so )
+
+
 #OPENGL_LIBRARIES
 
 if(NOT ${GLUT_FOUND})

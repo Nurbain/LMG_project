@@ -12,6 +12,7 @@
 
 # Qt-es
 
+assimp/
 /.qmake.cache
 /.qmake.stash
 *.pro.user

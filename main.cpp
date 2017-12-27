@@ -382,7 +382,7 @@ bool initializeShaderProgram()
 
 	// Vertex shader
 	const char* vertexShaderSource[] = {
-        "#version 310 es                             \n"
+        "#version 300 es                             \n"
 		"                                              \n"
 		"// INPUT                                      \n"
 		"layout (location = 0) in vec3 position;     \n"
@@ -443,7 +443,7 @@ bool initializeShaderProgram()
 
 	// Fragment shader
 	const char* fragmentShaderSource[] = {
-        "#version 310 es                                  \n"
+        "#version 300 es                                  \n"
         "precision highp float;                           \n"
         "                                               \n"
         "                                               \n"
