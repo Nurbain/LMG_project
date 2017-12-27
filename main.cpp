@@ -35,6 +35,8 @@
 #include <assimp/DefaultLogger.hpp>
 #include <assimp/LogStream.hpp>
 
+#include "AssetLoader.h"
+
 /******************************************************************************
  ****************************** NAMESPACE SECTION *****************************
  ******************************************************************************/
@@ -681,6 +683,13 @@ void idle( void )
 int main( int argc, char** argv )
 {
     std::cout << "Projet LMG" << std::endl;
+    std::string programPath = argv[ 0 ];
+    std::size_t found = programPath.find_last_of( "/\\" );
+
+    std::string dataRepository = programPath.substr( 0, found );
+
+    AssetLoader loader;
+    loader.import(dataRepository+"/../LMG_project/cube.obj");
 
 	// Initialize the GLUT library
 	glutInit( &argc, argv );

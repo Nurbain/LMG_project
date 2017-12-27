@@ -14,6 +14,7 @@ bool AssetLoader::import(const std::string filename){
     }else{
         this->_importer->GetErrorString();
         //std::cout << err_Importer << std::endl;
+        std::cout << "erreur lecture du fichier "<< strerror(errno) << std::endl;
         return false;
     }
 
