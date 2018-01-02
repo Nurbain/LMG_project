@@ -32,7 +32,7 @@ public:
         _importer = nullptr;
     }
     bool import(const std::string filename);
-    bool loadData(std::vector<std::vector<glm::vec3>>&);
+    bool loadData(std::vector<std::vector<glm::vec3>>&, std::vector<std::vector<unsigned int> > &);
 };
 
 

@@ -16,7 +16,7 @@ public:
     AssimpLoader* _Loader;
     Model3D();
     void loadMesh(const std::string filename);
-    void initialize(const std::vector<std::vector<glm::vec3>>& position);
+    void initialize(const std::vector<std::vector<glm::vec3>>& position,std::vector<std::vector<unsigned int> > &);
 };
 
 

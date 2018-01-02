@@ -6,7 +6,7 @@
 #include <stdexcept>
 
 
-
+using namespace std;
 bool AssetLoader::import(const std::string filename){
     std::ifstream fin(filename);
     if(!fin.fail()){
@@ -28,6 +28,40 @@ bool AssetLoader::import(const std::string filename){
     if(!_scene){
         std::cout << _importer->GetErrorString() << std::endl;
         return false;
+    }
+    return true;
+}
+
+bool AssetLoader::loadData(vector<vector<glm::vec3>>& pVertices,vector<vector<unsigned int>>& pIndices){
+    if(!_scene->HasMeshes()){
+        return false;
+    }
+
+    pVertices.resize(_scene->mNumMeshes);
+    pIndices.resize(_scene->mNumMeshes);
+
+    for(unsigned int m=0;m < _scene->mNumMeshes;++m){
+        vector<glm::vec3>& vertices = pVertices[m];
+        vector<unsigned int>& indices = pIndices[m];
+
+        const aiMesh* mesh = _scene->mMeshes[m];
+        if(mesh->HasPositions()){
+            vertices.resize(mesh->mNumVertices);
+            for(unsigned int v=0;v<mesh->mNumVertices;++v){
+                const aiVector3D& vertex = mesh->mVertices[v];
+                vertices[v] = glm::vec3(vertex.x,vertex.y,vertex.z);
+            }
+            
+            indices.resize(mesh->mNumFaces * 3);
+            int k=0;
+            for(unsigned int f=0;f< mesh->mNumFaces;++f){
+                const struct aiFace& face = mesh->mFaces[f];
+                assert(face.mNumIndices == 3);
+                indices[k++] = face.mIndices[0];
+                indices[k++] = face.mIndices[1];
+                indices[k++] = face.mIndices[2];
+            }
+        }
     }
     return true;
 }
