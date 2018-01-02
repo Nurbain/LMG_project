@@ -695,7 +695,7 @@ int main( int argc, char** argv )
     std::size_t found = programPath.find_last_of( "/\\" );
 
     std::string dataRepository = programPath.substr( 0, found );
-    model.loadMesh(dataRepository+"/../LMG_project/cube.obj");
+    model.loadMesh(dataRepository+"/../LMG_project/Model3D/BayMax.obj");
 
 	// Initialize the GLUT library
 	glutInit( &argc, argv );
