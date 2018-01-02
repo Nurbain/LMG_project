@@ -58,6 +58,8 @@ include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/glm" )
 # assimp
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/assimp/include" )
 
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/SOIL/src" )
+
 ##################################################################################
 # Program
 ##################################################################################
@@ -87,7 +89,7 @@ target_link_libraries( ${PROJECT_NAME} ${OPENGL_gl_LIBRARY} )
 
 target_link_libraries( ${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/assimp/lib/libassimp.so )
 
-
+target_link_libraries( ${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/SOIL/lib/libSOIL.a )
 #OPENGL_LIBRARIES
 
 if(NOT ${GLUT_FOUND})
