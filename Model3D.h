@@ -10,10 +10,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "AssetLoader.h"
-
+using namespace std;
 class Model3D{
 public:
-    AssimpLoader* _Loader;
+    AssetLoader* _Loader;
+    vector<vector<glm::vec3>> vertices;
+    vector<vector<glm::vec3>> normals;
+    vector<vector<unsigned int>> indices;
     Model3D();
     void loadMesh(const std::string filename);
     void initialize(const std::vector<std::vector<glm::vec3>>& position,std::vector<std::vector<unsigned int> > &);

@@ -32,16 +32,18 @@ bool AssetLoader::import(const std::string filename){
     return true;
 }
 
-bool AssetLoader::loadData(vector<vector<glm::vec3>>& pVertices,vector<vector<unsigned int>>& pIndices){
+bool AssetLoader::loadData(vector<vector<glm::vec3>>& pVertices,vector<vector<glm::vec3>>& pNormales,vector<vector<unsigned int>>& pIndices){
     if(!_scene->HasMeshes()){
         return false;
     }
 
     pVertices.resize(_scene->mNumMeshes);
+    pNormales.resize(_scene->mNumMeshes);
     pIndices.resize(_scene->mNumMeshes);
 
     for(unsigned int m=0;m < _scene->mNumMeshes;++m){
         vector<glm::vec3>& vertices = pVertices[m];
+        vector<glm::vec3>& normals = pNormales[m];
         vector<unsigned int>& indices = pIndices[m];
 
         const aiMesh* mesh = _scene->mMeshes[m];
@@ -51,7 +53,6 @@ bool AssetLoader::loadData(vector<vector<glm::vec3>>& pVertices,vector<vector<un
                 const aiVector3D& vertex = mesh->mVertices[v];
                 vertices[v] = glm::vec3(vertex.x,vertex.y,vertex.z);
             }
-            
             indices.resize(mesh->mNumFaces * 3);
             int k=0;
             for(unsigned int f=0;f< mesh->mNumFaces;++f){
@@ -61,7 +62,15 @@ bool AssetLoader::loadData(vector<vector<glm::vec3>>& pVertices,vector<vector<un
                 indices[k++] = face.mIndices[1];
                 indices[k++] = face.mIndices[2];
             }
+            if(mesh->HasNormals()){
+                normals.resize(mesh->mNumVertices);
+                for(unsigned int n=0;n<mesh->mNumVertices;++n){
+                    const aiVector3D& normal = mesh->mNormals[n];
+                    normals[n] = glm::vec3(normal.x,normal.y,normal.z);
+                }
+            }
         }
+
     }
     return true;
 }

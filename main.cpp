@@ -36,6 +36,7 @@
 #include <assimp/LogStream.hpp>
 
 #include "AssetLoader.h"
+#include "Model3D.h"
 
 /******************************************************************************
  ****************************** NAMESPACE SECTION *****************************
@@ -57,6 +58,8 @@ GLuint vertexArray;
 // Mesh
 int numberOfVertices_;
 int numberOfIndices_;
+
+Model3D model;
 
 // Shader program
 GLuint shaderProgram;
@@ -284,14 +287,18 @@ bool initializeArrayBuffer()
 	std::vector< glm::vec3 > points;
 	std::vector< glm::vec3 > normals;
 	std::vector< GLuint > triangleIndices;
-	const int nb = 100;
+    //const int nb = 100;
 
     //Ici on prends les données #1
-    waves( points, normals, triangleIndices, nb );
+    //waves( points, normals, triangleIndices, nb );
+
+    points = model.vertices[0];
+    triangleIndices = model.indices[0];
+    normals = model.normals[0];
 
     //Puis on envoie dans le VBO
 	numberOfVertices_ = static_cast< int >( points.size() );
-	numberOfIndices_ = static_cast< int >( triangleIndices.size() );
+    numberOfIndices_ = static_cast< int >( triangleIndices.size() );
 
     // Position buffer
 	glGenBuffers( 1, &positionBuffer );
@@ -303,7 +310,7 @@ bool initializeArrayBuffer()
     glBindBuffer( GL_ARRAY_BUFFER, 0 );
 
 	  // Position buffer
-	glGenBuffers( 1, &normalBuffer );
+    glGenBuffers( 1, &normalBuffer );
     // buffer courant a manipuler
 	glBindBuffer( GL_ARRAY_BUFFER, normalBuffer);
     // definit la taille du buffer et le remplit
@@ -426,9 +433,10 @@ bool initializeShaderProgram()
 		"// - light direction in Eye-space                                                                                       \n"
 		"    vec3 L = normalize( eyeLightPosition.xyz - eyePosition.xyz );                      \n"
 		"    float diffuse = max( 0.0, dot( eyeNormal, L ) );                                   \n"
-		"    vertexColor = vec4( lightColor, 1.0 ) * vec4( materialKd, 1 ) * diffuse;                 \n"
+        "    vertexColor = vec4( lightColor, 1.0 ) * vec4( materialKd, 1 ) * diffuse;                 \n"
+        //"    vertexColor = vec4( lightColor, 1.0 ) * vec4( materialKd, 1 );                 \n"
 		"                                                                                       \n"
-		"#if 1                                                                                 \n"
+        "#if 0                                                                                 \n"
 		"    // Use animation                                                                   \n"
 		"    float amplitude = 1.0;                                                             \n"
 		"    float frequency = 0.5;                                                             \n"
@@ -620,7 +628,7 @@ void display( void )
 	uniformLocation = glGetUniformLocation( shaderProgram, "lightPosition" );
 	if ( uniformLocation >= 0 )
 	{
-		_lightPosition = glm::vec3( 0.f, 10.f, 0.f );
+        _lightPosition = glm::vec3( 0.f, 2.f, 3.f );
 		glUniform3fv( uniformLocation, 1, glm::value_ptr( _lightPosition ) );
 	}
 	// - light
@@ -687,9 +695,7 @@ int main( int argc, char** argv )
     std::size_t found = programPath.find_last_of( "/\\" );
 
     std::string dataRepository = programPath.substr( 0, found );
-
-    AssetLoader loader;
-    loader.import(dataRepository+"/../LMG_project/cube.obj");
+    model.loadMesh(dataRepository+"/../LMG_project/cube.obj");
 
 	// Initialize the GLUT library
 	glutInit( &argc, argv );
