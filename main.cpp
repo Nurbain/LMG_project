@@ -26,6 +26,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 //SOIL
 #include "SOIL.h"
@@ -87,6 +88,8 @@ float _cameraFovY;
 float _cameraAspect;
 float _cameraZNear;
 float _cameraZFar;
+
+float Speed = 0.1f;
 
 // Mesh parameters
 glm::vec3 _meshColor;
@@ -264,8 +267,8 @@ void initializeCamera()
 {
     // User parameters
     // - view
-    _cameraEye = glm::vec3( 0.f, 2.f, 3.f );
-    _cameraCenter = glm::vec3( 0.f, 0.f, 0.f );
+    _cameraEye = glm::vec3( 0.f, 0.f, 1.f );
+    _cameraCenter = glm::vec3( 0.f/* gauche en neg*/,0.f, 0.f /* up */);
     _cameraUp = glm::vec3( 0.f, 1.f, 0.f );
     // - projection
     _cameraFovY = 45.f;
@@ -580,6 +583,9 @@ void display( void )
     // - clear the "color" framebuffer
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
+    //--------------------------------------------------------------------------------
+    // Camera
+    //--------------------------------------------------------------------------------
     // Retrieve camera parameters
     const glm::mat4 viewMatrix = glm::lookAt( _cameraEye, _cameraCenter, _cameraUp );
     const glm::mat4 projectionMatrix = glm::perspective( _cameraFovY, _cameraAspect, _cameraZNear, _cameraZFar );
@@ -603,8 +609,7 @@ void display( void )
     if ( uniformLocation >= 0 )
     {
             glm::mat4 modelMatrix = glm::mat4( 1.f );
-            const float scale = 7.f; // TODO: modify this to scale your cubemap size
-            modelMatrix = glm::scale( modelMatrix, glm::vec3( scale, scale, scale ) );
+            modelMatrix = glm::scale( modelMatrix, glm::vec3( CubeMap.scale, CubeMap.scale, CubeMap.scale ) );
             glm::mat4 MVP = projectionMatrix * viewMatrix * modelMatrix;
             glUniformMatrix4fv( uniformLocation, 1/*count*/, GL_FALSE/*transpose*/, glm::value_ptr( MVP ) );
     }
@@ -691,7 +696,7 @@ void display( void )
 
     // Retrieve 3D model / scene parameters
     glm::mat4 modelMatrix;
-    const bool useMeshAnimation = true; // TODO: use keyboard to activate/deactivate
+    const bool useMeshAnimation = false; // TODO: use keyboard to activate/deactivate
     if ( useMeshAnimation )
     {
         modelMatrix = glm::rotate( modelMatrix, static_cast< float >( currentTime ) * 0.001f, glm::vec3( 0.0f, 1.f, 0.f ) );
@@ -801,6 +806,86 @@ void display( void )
     glutSwapBuffers();
 }
 
+
+/******************************************************************************
+ * Callback for KeyBoardEvent
+ ******************************************************************************/
+void keyboard_CB(unsigned char key, int x, int y)
+{
+    switch (key) {
+    case 'z':
+        if(_cameraEye.z < 0){
+           if(_cameraEye.z > -(CubeMap.scale - Speed)){
+               _cameraEye = _cameraEye - glm::vec3( 0.f, 0.f, Speed);
+           }
+        }else
+            _cameraEye = _cameraEye - glm::vec3( 0.f, 0.f, Speed);
+        break;
+    case 's':
+        if(_cameraEye.z > 0){
+            if(_cameraEye.z < (CubeMap.scale - Speed)){
+                _cameraEye = _cameraEye + glm::vec3( 0.f, 0.f, Speed);
+            }
+        }else
+            _cameraEye = _cameraEye + glm::vec3( 0.f, 0.f, Speed);;
+        break;
+    case 'q':
+        if(_cameraEye.x < 0){
+           if(_cameraEye.x > -(CubeMap.scale - Speed)){
+                _cameraEye = _cameraEye - glm::vec3( Speed, 0.f, 0.f);
+           }
+        }else
+             _cameraEye = _cameraEye - glm::vec3( Speed, 0.f, 0.f);
+        break;
+    case 'd':
+        if(_cameraEye.x > 0){
+            if(_cameraEye.x < (CubeMap.scale - Speed)){
+                _cameraEye = _cameraEye + glm::vec3( Speed, 0.f, 0.f);
+            }
+        }else
+             _cameraEye = _cameraEye + glm::vec3( Speed, 0.f, 0.f);
+
+        break;
+    case ' ':
+        if(_cameraEye.y > 0){
+            if(_cameraEye.y < (CubeMap.scale - Speed)){
+                _cameraEye = _cameraEye + glm::vec3( 0.f, Speed, 0.f);
+            }
+        }
+        else
+            _cameraEye = _cameraEye + glm::vec3( 0.f, Speed, 0.f);
+        break;
+
+    case 'x' :
+        if(_cameraEye.y < 0){
+           if(_cameraEye.y > -(CubeMap.scale - Speed)){
+               _cameraEye = _cameraEye - glm::vec3( 0.f, Speed, 0.f);
+           }
+        }else
+            _cameraEye = _cameraEye - glm::vec3( 0.f, Speed, 0.f);
+        break;
+
+    default:
+        std::cout << "key " << key << std::endl;
+        break;
+    }
+}
+
+
+void special_CB(int key, int x, int y)
+{
+    switch (key) {
+
+    default:
+        std::cout << "key " << key << std::endl;
+        break;
+    }
+}
+
+void mouse_CB(int button, int state, int x, int y){
+//    const glm::mat4 viewMatrix = glm::lookAt( _cameraEye, _cameraCenter, _cameraUp );
+}
+
 /******************************************************************************
  * Callback continuously called when events are not being received
  ******************************************************************************/
@@ -849,8 +934,16 @@ int main( int argc, char** argv )
     // Callbacks
     // - callback called when displaying window (user custom fonction pointer: "void f( void )")
     glutDisplayFunc( display );
+
+    //Event KeyBoard and Mouse
+    glutKeyboardFunc(keyboard_CB);
+    glutSpecialFunc(special_CB);
+    glutMouseFunc(mouse_CB);
+
     // - callback continuously called when events are not being received
     glutIdleFunc( idle );
+
+
 
     // Initialize the GLEW library
     // - mandatory to be able to use OpenGL extensions,

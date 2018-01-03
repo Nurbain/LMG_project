@@ -34,6 +34,10 @@ public:
     // - repository
     std::string ImgRepository;
 
+    // - scale
+    float scale;
+
+
     SkyBox();
 
     // Methode d'initialisation

@@ -1,7 +1,7 @@
 #include "SkyBox.h"
 
 SkyBox::SkyBox(){
-
+    scale = 10;
 }
 
 
