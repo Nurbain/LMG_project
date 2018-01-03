@@ -592,6 +592,14 @@ void display( void )
 
     GLint uniformLocation;
 
+    // Retrieve 3D model / scene parameters
+    glm::mat4 modelMatrix;
+    const bool useMeshAnimation = false; // TODO: use keyboard to activate/deactivate
+    if ( useMeshAnimation )
+    {
+        modelMatrix = glm::rotate( modelMatrix, static_cast< float >( currentTime ) * 0.001f, glm::vec3( 0.0f, 1.f, 0.f ) );
+    }
+
 
     //--------------------------------------------------------------------------------
     // Cubemap
@@ -646,11 +654,30 @@ void display( void )
         //--------------------
         // Retrieve 3D model / scene parameters
         // Animation
-        uniformLocation = glGetUniformLocation( shaderProgram, "time" );
+        uniformLocation = glGetUniformLocation( terrain.mHeigthMapShaderProgram, "time" );
         //std::cout << uniformLocation << std::endl;
         if ( uniformLocation >= 0 )
         {
             glUniform1f( uniformLocation, static_cast< float >( currentTime ) );
+        }
+
+        uniformLocation = glGetUniformLocation( terrain.mHeigthMapShaderProgram, "viewMatrix" );
+        if ( uniformLocation >= 0 )
+        {
+            glUniformMatrix4fv( uniformLocation, 1, GL_FALSE, glm::value_ptr( viewMatrix ) );
+        }
+        // - projection matrix
+        uniformLocation = glGetUniformLocation( terrain.mHeigthMapShaderProgram, "projectionMatrix" );
+        if ( uniformLocation >= 0 )
+        {
+            glUniformMatrix4fv( uniformLocation, 1, GL_FALSE, glm::value_ptr( projectionMatrix ) );
+        }
+        // Mesh
+        // - model matrix
+        uniformLocation = glGetUniformLocation( terrain.mHeigthMapShaderProgram, "modelMatrix" );
+        if ( uniformLocation >= 0 )
+        {
+            glUniformMatrix4fv( uniformLocation, 1, GL_FALSE, glm::value_ptr( modelMatrix ) );
         }
 
         //--------------------
@@ -694,13 +721,7 @@ void display( void )
     // Send uniforms to GPU
     //--------------------------------------------------------------------------------
 
-    // Retrieve 3D model / scene parameters
-    glm::mat4 modelMatrix;
-    const bool useMeshAnimation = false; // TODO: use keyboard to activate/deactivate
-    if ( useMeshAnimation )
-    {
-        modelMatrix = glm::rotate( modelMatrix, static_cast< float >( currentTime ) * 0.001f, glm::vec3( 0.0f, 1.f, 0.f ) );
-    }
+
     // Camera
     // - view matrix
     uniformLocation = glGetUniformLocation( shaderProgram, "viewMatrix" );
@@ -909,7 +930,7 @@ int main( int argc, char** argv )
     //Repository de la skyBox
     CubeMap.ImgRepository = dataRepository+"/../LMG_project/Map/";
 
-    terrain.ImgRepository = dataRepository+"/../LMG_project/HeigthMap/myImage.jpg";
+    terrain.ImgRepository = dataRepository+"/../LMG_project/HeigthMap/chili.jpg";
 
     //Load le mesh 3D
     model.loadMesh(dataRepository+"/../LMG_project/PhotoExemple/tigre.obj");

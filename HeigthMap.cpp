@@ -40,15 +40,15 @@ bool HeigthMap::initializeArrayBuffer()
     // In this example, we want to display one triangle
 
     // Buffer of positions on CPU (host)
-    std::vector< glm::vec2 > points;
+    std::vector< glm::vec3 > points;
     std::vector< glm::vec2 > textureCoordinates;
     std::vector< GLuint > triangleIndices;
 
     // Positions
-    points.push_back( glm::vec2( -1.f, -1.f ) );
-    points.push_back( glm::vec2( 1.f, -1.f ) );
-    points.push_back( glm::vec2( 1.f, 0.5 ) );
-    points.push_back( glm::vec2( -1.f, 0.5 ) );
+    points.push_back( glm::vec3( -1.f, -1.f,1 ) );
+    points.push_back( glm::vec3( 1.f, -1.f,1 ) );
+    points.push_back( glm::vec3( 1.f, -1.f,-1 ) );
+    points.push_back( glm::vec3( -1.f,-1.f,-1 ) );
 
     // Texture coordinates
     textureCoordinates.push_back( glm::vec2(0.f,0.f));
@@ -77,7 +77,7 @@ bool HeigthMap::initializeArrayBuffer()
     // buffer courant a manipuler
     glBindBuffer( GL_ARRAY_BUFFER, mHeigthMapVertexBuffer );
     // definit la taille du buffer et le remplit
-    glBufferData( GL_ARRAY_BUFFER, numberOfVertices_ * sizeof( glm::vec2 ), points.data(), GL_STATIC_DRAW );
+    glBufferData( GL_ARRAY_BUFFER, numberOfVertices_ * sizeof( glm::vec3 ), points.data(), GL_STATIC_DRAW );
     // buffer courant : rien
     glBindBuffer( GL_ARRAY_BUFFER, 0 );
 
@@ -123,7 +123,7 @@ bool HeigthMap::initializeVertexArray()
     glBindBuffer( GL_ARRAY_BUFFER, mHeigthMapVertexBuffer );
     // - specify the location and data format of the array of generic vertex attributes at index​ to use when rendering
     const GLuint positionBufferIndex = 0; // (checkout input "layout" in your shaders)
-    glVertexAttribPointer( positionBufferIndex/*index of the generic vertex attribute: VBO index (not its ID!)*/, 2/*nb elements in the attribute: (x,y,z)*/, GL_FLOAT/*type of data*/, GL_FALSE/*normalize data*/, 0/*stride*/, 0/*offset in memory*/ );
+    glVertexAttribPointer( positionBufferIndex/*index of the generic vertex attribute: VBO index (not its ID!)*/, 3/*nb elements in the attribute: (x,y,z)*/, GL_FLOAT/*type of data*/, GL_FALSE/*normalize data*/, 0/*stride*/, 0/*offset in memory*/ );
     // - enable or disable a generic vertex attribute array
     glEnableVertexAttribArray( positionBufferIndex/*index of the generic vertex attribute*/ );
 
@@ -158,6 +158,7 @@ bool HeigthMap::initializeMaterial()
     std::cout << ImgRepository << std::endl;
     unsigned char* image = SOIL_load_image( ImgRepository.c_str(), &textureWidth,
     &textureHeight, 0, SOIL_LOAD_RGB );
+    std::cout << "h : " << textureHeight << " w : " << textureWidth << std::endl;
 
 
     glGenTextures(1,&texture);
@@ -210,12 +211,18 @@ bool HeigthMap::initializeShaderProgram()
         "                                              \n"
         " // INPUT                                     \n"
         " // - vertex attributes                       \n"
-        " in vec2 position;                            \n"
+        " in vec3 position;                            \n"
         " in vec2 textureCoordinate;                         \n"
         "                                              \n"
         " // UNIFORM                                   \n"
         " // - animation                               \n"
         " uniform float time;                          \n"
+        "// UNIFORM                                    \n"
+        "// - camera                                   \n"
+        "uniform mat4 viewMatrix;                      \n"
+        "uniform mat4 projectionMatrix;                \n"
+        "// - 3D model                                 \n"
+        "uniform mat4 modelMatrix;                     \n"
         "                                              \n"
         " // OUTPUT                                    \n"
         " out vec2 uv;                                 \n"
@@ -224,7 +231,7 @@ bool HeigthMap::initializeShaderProgram()
         "void main( void )                             \n"
         "{                                             \n"
         "    // Send position to Clip-space            \n"
-        "    gl_Position = vec4( position, 0.0, 1.0 ); \n"
+        "    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4( position, 1.0 ); \n"
         "    uv = textureCoordinate;                                          \n"
         "}                                             \n"
     };
@@ -254,6 +261,7 @@ bool HeigthMap::initializeShaderProgram()
         "    vec4 color = texture(meshTexture,vec2(uv.s,1.0-uv.t));                  \n"
         "    // Use animation                          \n"
         "    fragmentColor = color;   \n"
+        "    gl_FragCoord.y = uv.s;   \n"
         "}                                             \n"
     };
 
