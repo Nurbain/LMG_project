@@ -193,7 +193,7 @@ bool SkyBox::initializeCubemapShader(){
 
     // Vertex shader
     const char* vertexShaderSource[] = {
-    "#version 310 es                                                		   \n"
+    "#version 300 es                                                		   \n"
         "precision highp float;																								 \n"
         "// INPUT                                                              \n"
         "layout (location = 0) in vec3 position;                               \n"
@@ -214,7 +214,7 @@ bool SkyBox::initializeCubemapShader(){
 
     // Fragment shader
     const char* fragmentShaderSource[] = {
-        "#version 310 es                                                		  \n"
+        "#version 300 es                                                		  \n"
         "precision highp float; 																							\n"
         "// INPUT                                                        			\n"
         "in vec3 pos;    		                                               		\n"

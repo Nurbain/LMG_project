@@ -41,6 +41,7 @@
 #include "AssetLoader.h"
 #include "Model3D.h"
 #include "SkyBox.h"
+#include "HeigthMap.h"
 
 
 
@@ -70,6 +71,8 @@ Model3D model;
 
 //SkyBox
 SkyBox CubeMap;
+
+HeigthMap terrain;
 
 // Shader program
 GLuint shaderProgram;
@@ -242,6 +245,11 @@ bool initialize()
     if ( statusOK )
     {
             statusOK = CubeMap.initializeCubemap();
+    }
+
+    if ( statusOK )
+    {
+            statusOK = terrain.initializeHeigthMap();
     }
 
     initializeCamera();
@@ -623,6 +631,54 @@ void display( void )
 
 
     //--------------------------------------------------------------------------------
+    // Heigthmap
+    //--------------------------------------------------------------------------------
+
+    glUseProgram( terrain.mHeigthMapShaderProgram );
+
+        //--------------------
+        // Send uniforms to GPU
+        //--------------------
+        // Retrieve 3D model / scene parameters
+        // Animation
+        uniformLocation = glGetUniformLocation( shaderProgram, "time" );
+        //std::cout << uniformLocation << std::endl;
+        if ( uniformLocation >= 0 )
+        {
+            glUniform1f( uniformLocation, static_cast< float >( currentTime ) );
+        }
+
+        //--------------------
+        // Render scene
+        //--------------------
+
+        // Set GL state(s) (fixed pipeline)
+        //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+
+        // - bind VAO as current vertex array (in OpenGL state machine)
+        glBindVertexArray( terrain.mHeigthMapVertexArray );
+
+        glActiveTexture( GL_TEXTURE0 );
+        glBindTexture( GL_TEXTURE_2D, terrain.texture );
+        // - draw command
+        glDrawElements(
+             GL_TRIANGLES,      // mode
+             terrain.numberOfIndices_,  // count
+             GL_UNSIGNED_INT,   // data type
+             (void*)0           // element array buffer offset
+        );
+
+        // - unbind VAO (0 is the default resource ID in OpenGL)
+        glBindVertexArray( 0 );
+
+        // Reset GL state(s) (fixed pipeline)
+        //glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
+        // Deactivate current shader program
+        glUseProgram( 0 );
+
+
+    //--------------------------------------------------------------------------------
     // Activate shader program
     //--------------------------------------------------------------------------------
     glUseProgram( shaderProgram );
@@ -767,6 +823,8 @@ int main( int argc, char** argv )
 
     //Repository de la skyBox
     CubeMap.ImgRepository = dataRepository+"/../LMG_project/Map/";
+
+    terrain.ImgRepository = dataRepository+"/../LMG_project/HeigthMap/myImage.jpg";
 
     //Load le mesh 3D
     model.loadMesh(dataRepository+"/../LMG_project/PhotoExemple/tigre.obj");
