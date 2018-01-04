@@ -681,51 +681,6 @@ void display( void )
         {
             glUniformMatrix4fv( uniformLocation, 1, GL_FALSE, glm::value_ptr( modelMatrix ) );
         }
-        // - normal matrix
-        uniformLocation = glGetUniformLocation(  terrain.mHeigthMapShaderProgram, "normalMatrix" );
-        if ( uniformLocation >= 0 )
-        {
-            glm::mat3 normalMatrix = glm::transpose( glm::inverse( glm::mat3( viewMatrix * modelMatrix ) ) );
-            glUniformMatrix3fv( uniformLocation, 1, GL_FALSE, glm::value_ptr( normalMatrix ) );
-        }
-        // - mesh color
-        uniformLocation = glGetUniformLocation(  terrain.mHeigthMapShaderProgram, "meshColor" );
-        if ( uniformLocation >= 0 )
-        {
-            glUniform3fv( uniformLocation, 1, glm::value_ptr( _meshColor ) );
-        }
-        uniformLocation = glGetUniformLocation(  terrain.mHeigthMapShaderProgram, "materialKd" );
-        if ( uniformLocation >= 0 )
-        {
-            _materialKd = glm::vec3( 0.f, 0.f, 1.f );
-            glUniform3fv( uniformLocation, 1, glm::value_ptr( _materialKd ) );
-        }
-        uniformLocation = glGetUniformLocation(  terrain.mHeigthMapShaderProgram, "materialKs" );
-        if ( uniformLocation >= 0 )
-        {
-            _materialKs = glm::vec3( 1.f, 1.f, 1.f );
-            glUniform3fv( uniformLocation, 1, glm::value_ptr( _materialKs ) );
-        }
-        uniformLocation = glGetUniformLocation(  terrain.mHeigthMapShaderProgram, "materialShininess" );
-        if ( uniformLocation >= 0 )
-        {
-            _materialShininess = 20.f;
-            glUniform1f( uniformLocation, _materialShininess );
-        }
-        // - light
-        uniformLocation = glGetUniformLocation(  terrain.mHeigthMapShaderProgram, "lightPosition" );
-        if ( uniformLocation >= 0 )
-        {
-            _lightPosition = glm::vec3( 0.f, 10.f, 0.f );
-            glUniform3fv( uniformLocation, 1, glm::value_ptr( _lightPosition ) );
-        }
-        // - light
-        uniformLocation = glGetUniformLocation(  terrain.mHeigthMapShaderProgram, "lightColor" );
-        if ( uniformLocation >= 0 )
-        {
-            _lightColor = glm::vec3( 1.f, 1.f, 1.f );
-            glUniform3fv( uniformLocation, 1, glm::value_ptr( _lightColor ) );
-        }
 
         //--------------------
         // Render scene

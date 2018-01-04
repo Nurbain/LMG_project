@@ -32,6 +32,7 @@ public:
     GLuint mHeigthMapVertexBuffer;
     GLuint mHeigthMapIndexBuffer;
     GLuint mHeigthMapTextureCoordinateBuffer;
+    GLuint mHeigthMapNormalBuffer;
 
     // - shader
     GLuint mHeigthMapShaderProgram;
@@ -57,7 +58,7 @@ public:
     bool initializeMaterial();
     bool initializeShaderProgram();
 private:
-    void plane( std::vector< glm::vec3 >& points,std::vector< GLuint >& triangleIndices, int nb );
+    void plane( std::vector< glm::vec3 >& points,std::vector< glm::vec3 >& normals,std::vector< GLuint >& triangleIndices, int nb );
 };
 
 #endif

@@ -1,9 +1,10 @@
 #include "HeigthMap.h"
 
-void HeigthMap::plane( std::vector< glm::vec3 >& points,std::vector< GLuint >& triangleIndices, int nb )
+void HeigthMap::plane( std::vector< glm::vec3 >& points,std::vector< glm::vec3 >& normals,std::vector< GLuint >& triangleIndices, int nb )
 {
     // Position and normal arrays
     points.resize( nb * nb );
+    normals.resize( nb * nb );
     for ( int j = 0; j < nb; ++j )
     {
         for ( int i = 0; i < nb; ++i )
@@ -19,7 +20,7 @@ void HeigthMap::plane( std::vector< glm::vec3 >& points,std::vector< GLuint >& t
             int y_tex = (float)i/(float)nb * (this->textureHeight-1);
 
             // Position
-            const float h = (float)image[x_tex*y_tex]/255.f -1;
+            const float h = (float)image[x_tex+y_tex*(this->textureHeight-1)]/255.f -1;
             //const float h = -1;
             // - store position
             points[ k ] = { x, h, y };
@@ -31,16 +32,34 @@ void HeigthMap::plane( std::vector< glm::vec3 >& points,std::vector< GLuint >& t
     for ( int j = 1; j < nb; ++j )
         for ( int i = 1; i < nb; ++i )
         {
+            glm::vec3 normal_face;
             // Current data index
             const int k = j * nb + i;
             // triangle
             triangleIndices.push_back( k );
             triangleIndices.push_back( k - nb );
             triangleIndices.push_back( k - nb - 1 );
+
+            normal_face = glm::normalize(glm::cross(points[k-nb-1]-points[k],points[k-nb]-points[k]));
+            normals[k] += normal_face;
+            normals[k-nb] += normal_face;
+            normals[k-nb-1] += normal_face;
+
             // triangle
             triangleIndices.push_back( k );
             triangleIndices.push_back( k - nb - 1 );
             triangleIndices.push_back( k - 1 );
+
+            normal_face = glm::normalize(glm::cross(points[k-1]-points[k],points[k-nb-1]-points[k]));
+            normals[k] += normal_face;
+            normals[k-1] += normal_face;
+            normals[k-nb-1] += normal_face;
+        }
+    for ( int j = 1; j < nb; ++j )
+        for ( int i = 1; i < nb; ++i )
+        {
+            const int k = j * nb + i;
+            glm::normalize(normals[k]);
         }
 }
 
@@ -87,10 +106,11 @@ bool HeigthMap::initializeArrayBuffer()
 
     // Buffer of positions on CPU (host)
     std::vector< glm::vec3 > points;
+    std::vector< glm::vec3 > normals;
     std::vector< glm::vec2 > textureCoordinates;
     std::vector< GLuint > triangleIndices;
 
-    plane(points,triangleIndices,108);
+    plane(points,normals,triangleIndices,1081);
 
 #if 0
     // Positions
@@ -141,6 +161,14 @@ bool HeigthMap::initializeArrayBuffer()
     // buffer courant : rien
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 
+    glGenBuffers( 1, &mHeigthMapNormalBuffer );
+    // buffer courant a manipuler
+    glBindBuffer( GL_ARRAY_BUFFER, mHeigthMapNormalBuffer);
+    // definit la taille du buffer et le remplit
+    glBufferData( GL_ARRAY_BUFFER, numberOfVertices_ * sizeof( glm::vec3 ), normals.data(), GL_STATIC_DRAW );
+    // buffer courant : rien
+    glBindBuffer( GL_ARRAY_BUFFER, 0 );
+
 #if 0
     // Texture coordinates buffer
     glGenBuffers( 1, &mHeigthMapTextureCoordinateBuffer );
@@ -178,6 +206,13 @@ bool HeigthMap::initializeVertexArray()
     glVertexAttribPointer( positionBufferIndex/*index of the generic vertex attribute: VBO index (not its ID!)*/, 3/*nb elements in the attribute: (x,y,z)*/, GL_FLOAT/*type of data*/, GL_FALSE/*normalize data*/, 0/*stride*/, 0/*offset in memory*/ );
     // - enable or disable a generic vertex attribute array
     glEnableVertexAttribArray( positionBufferIndex/*index of the generic vertex attribute*/ );
+
+    // - bind VBO as current buffer (in OpenGL state machine)
+    glBindBuffer( GL_ARRAY_BUFFER, mHeigthMapNormalBuffer );
+    // - specify the location and data format of the array of generic vertex attributes at index​ to use when rendering
+    glVertexAttribPointer( 1/*index of the generic vertex attribute: VBO index (not its ID!)*/, 3/*nb elements in the attribute: (x,y,z)*/, GL_FLOAT/*type of data*/, GL_FALSE/*normalize data*/, 0/*stride*/, 0/*offset in memory*/ );
+    // - enable or disable a generic vertex attribute array
+    glEnableVertexAttribArray( 1/*index of the generic vertex attribute*/ );
 
     // Index buffer
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, mHeigthMapIndexBuffer );
@@ -261,32 +296,69 @@ bool HeigthMap::initializeShaderProgram()
         "#version 300 es                             \n"
         //"#version 130                                  \n"
         "                                              \n"
-        " // INPUT                                     \n"
-        " // - vertex attributes                       \n"
-        " in vec3 position;                            \n"
-        " in vec2 textureCoordinate;                         \n"
+        "// INPUT                                      \n"
+        "layout (location = 0) in vec3 position;     \n"
+        "layout (location = 1) in vec3 normal;       \n"
         "                                              \n"
-        " // UNIFORM                                   \n"
-        " // - animation                               \n"
-        " uniform float time;                          \n"
         "// UNIFORM                                    \n"
         "// - camera                                   \n"
         "uniform mat4 viewMatrix;                      \n"
         "uniform mat4 projectionMatrix;                \n"
         "// - 3D model                                 \n"
         "uniform mat4 modelMatrix;                     \n"
+        "uniform mat3 normalMatrix;                    \n"
+        "// - material                                 \n"
+        "uniform vec3 materialKd;                      \n"
+        "uniform vec3 materialKs;                      \n"
+        "uniform float materialShininess;              \n"
+        "// - light                                    \n"
+        "uniform vec3 lightPosition;                   \n"
+        "uniform vec3 lightColor;                      \n"
+        "// - animation                               \n"
+        "uniform float time;                          \n"
         "                                              \n"
-        " // OUTPUT                                    \n"
-        " out vec2 uv;                                 \n"
-        " out float heigth;                                 \n"
+        "// OUTPUT                                     \n"
+        "out vec4 vertexColor;                               \n"
         "                                              \n"
-        " // MAIN                                      \n"
+        "// MAIN                                       \n"
         "void main( void )                             \n"
         "{                                             \n"
-        "    // Send position to Clip-space            \n"
-        "   heigth = position.y+1.f;            \n"
+        "float heigth = position.y+1.0;                                       \n"
+        "vec4 color = vec4(1,0,0,1);                                       \n"
+        "    if(heigth<0.3)                                          \n"
+        "       color = vec4(0,0,heigth,1);                                       \n"
+        "    if(heigth>=0.3 && heigth < 0.6)                                          \n"
+        "       color = vec4(0,heigth,0,1);                                       \n"
+        "    if(heigth>=0.6)                                          \n"
+        "       color = vec4(heigth,heigth,heigth,1);                  \n"
+        "// Transform data to Eye-space, because this is the space where OpenGL does lighting traditionally \n"
+        "// - vertex position                                \n"
+        "    vec4 eyePosition = viewMatrix * modelMatrix * vec4( position, 1 );                 \n"
+        "// - normal                                \n"
+        "    vec3 eyeNormal = normalize( normalMatrix * normal );                               \n"
+        "// - light position [already expressed in Object or World space : it depends of what you want]                    \n"
+        //"    vec4 eyeLightPosition = viewMatrix * modelMatrix * vec4( lightPosition, 1 );       \n"
+        "    vec4 eyeLightPosition = viewMatrix * vec4( lightPosition, 1 );       \n"
+        "                                                                                       \n"
+        "// Compute diffuse lighting coefficient                                                                                       \n"
+        "// - light direction in Eye-space                                                                                       \n"
+        "    vec3 L = normalize( eyeLightPosition.xyz - eyePosition.xyz );                      \n"
+        "    float diffuse = max( 0.0, dot( eyeNormal, L ) );                                   \n"
+        "    vertexColor = vec4( lightColor, 1.0 ) * color * diffuse;                 \n"
+        //"    vertexColor = vec4( lightColor, 1.0 ) * vec4( materialKd, 1 );                 \n"
+        "                                                                                       \n"
+        "#if 0                                                                                 \n"
+        "    // Use animation                                                                   \n"
+        "    float amplitude = 1.0;                                                             \n"
+        "    float frequency = 0.5;                                                             \n"
+        "    float height = amplitude * sin( 2.0 * 3.141592 * frequency * ( time * 0.001 ) );   \n"
+        "    vec3 pos = vec3( position.x, position.y + height, position.z );                    \n"
+        "    // Send position to Clip-space                                                     \n"
+        "    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4( pos, 1.0 );      \n"
+        "#else                                                                                  \n"
+        "    // Send position to Clip-space                                                     \n"
         "    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4( position, 1.0 ); \n"
-        //"    uv = textureCoordinate;                                          \n"
+        "#endif                                                                                 \n"
         "}                                             \n"
     };
 
@@ -294,35 +366,22 @@ bool HeigthMap::initializeShaderProgram()
     const char* fragmentShaderSource[] = {
         "#version 300 es                             \n"
         "precision highp float;                           \n"
-        "                                              \n"
-        " // INPUT                                     \n"
-        " in vec2 uv;                                  \n"
-        " in float heigth;                                 \n"
-        "                                              \n"
-        " // UNIFORM                                   \n"
-        " // - mesh                                    \n"
-        " uniform vec3 meshColor;                      \n"
-        " // - animation                               \n"
-        " uniform float time;                          \n"
-        " // - material 							   \n"
-        " uniform sampler2D meshTexture;			   \n"
-        "                                              \n"
-        " // OUTPUT                                    \n"
-        " out vec4 fragmentColor;                      \n"
-        "                                              \n"
-        " // MAIN                                      \n"
-        "void main( void )                             \n"
-        "{                                             \n"
-        "       vec4 color = vec4(heigth,0,0,1);                                       \n"
-        "    if(heigth<0.3)                                          \n"
-        "       color = vec4(0,0,heigth,1);                                       \n"
-        "    if(heigth>=0.3 && heigth < 0.6)                                          \n"
-        "       color = vec4(0,heigth,0,1);                                       \n"
-        "    if(heigth>=0.6)                                          \n"
-        "       color = vec4(heigth,heigth,heigth,1);                  \n"
-        "    // Use animation                          \n"
-        "    fragmentColor = color;   \n"
-        "}                                             \n"
+        "                                               \n"
+        "                                               \n"
+        "// INPUT                                       \n"
+        "in vec4 vertexColor;                                 \n"
+        "                                               \n"
+        "// UNIFORM                                     \n"
+        "uniform vec3 meshColor;                        \n"
+        "                                               \n"
+        "// OUTPUT                                      \n"
+        "layout( location = 0 ) out vec4 fragmentColor;     \n"
+        "                                                   \n"
+        "// MAIN                                        \n"
+        "void main( void )                              \n"
+        "{                                                  \n"
+        "    fragmentColor = vertexColor;                     \n"
+        "}                                                  \n"
     };
 
     // Load shader source
