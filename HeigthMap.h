@@ -44,6 +44,10 @@ public:
     // - repository
     std::string ImgRepository;
 
+    unsigned char* image;
+    int textureWidth;
+    int textureHeight;
+
     HeigthMap(){}
 
     // Methode d'initialisation
@@ -52,6 +56,8 @@ public:
     bool initializeVertexArray();
     bool initializeMaterial();
     bool initializeShaderProgram();
+private:
+    void plane( std::vector< glm::vec3 >& points,std::vector< GLuint >& triangleIndices, int nb );
 };
 
 #endif

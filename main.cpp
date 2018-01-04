@@ -609,6 +609,7 @@ void display( void )
     glActiveTexture( GL_TEXTURE0 );
     glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap.texture );
 
+
     // Set shader program
     glUseProgram( CubeMap.mCubeMapShaderProgram );
 
@@ -648,6 +649,7 @@ void display( void )
     //--------------------------------------------------------------------------------
 
     glUseProgram( terrain.mHeigthMapShaderProgram );
+    //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
         //--------------------
         // Send uniforms to GPU
@@ -708,6 +710,7 @@ void display( void )
 
         // Deactivate current shader program
         glUseProgram( 0 );
+        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL);
 
 
     //--------------------------------------------------------------------------------

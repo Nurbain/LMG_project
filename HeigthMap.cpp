@@ -1,9 +1,58 @@
 #include "HeigthMap.h"
 
+void HeigthMap::plane( std::vector< glm::vec3 >& points,std::vector< GLuint >& triangleIndices, int nb )
+{
+    // Position and normal arrays
+    points.resize( nb * nb );
+    for ( int j = 0; j < nb; ++j )
+    {
+        for ( int i = 0; i < nb; ++i )
+        {
+            // Current data index
+            const int k = j * nb + i;
+
+            // Current position
+            float x = 6.0f / nb * j - 3.000001f;
+            float y = 6.0f / nb * i - 3.000001f;
+
+            int x_tex = (float)j/(float)nb * (this->textureWidth-1);
+            int y_tex = (float)i/(float)nb * (this->textureHeight-1);
+
+            // Position
+            const float h = (float)image[x_tex*y_tex]/255.f -1;
+            //const float h = -1;
+            // - store position
+            points[ k ] = { x, h, y };
+        }
+    }
+
+    // Index array
+    triangleIndices.reserve( 6 * ( nb - 1 ) * ( nb - 1 ) );
+    for ( int j = 1; j < nb; ++j )
+        for ( int i = 1; i < nb; ++i )
+        {
+            // Current data index
+            const int k = j * nb + i;
+            // triangle
+            triangleIndices.push_back( k );
+            triangleIndices.push_back( k - nb );
+            triangleIndices.push_back( k - nb - 1 );
+            // triangle
+            triangleIndices.push_back( k );
+            triangleIndices.push_back( k - nb - 1 );
+            triangleIndices.push_back( k - 1 );
+        }
+}
+
 bool HeigthMap::initializeHeigthMap(){
     bool statusOK = true;
 
     std::cout << "Initialize Heigth map..." << std::endl;
+
+    if ( statusOK )
+    {
+        statusOK = initializeMaterial();
+    }
 
     if ( statusOK )
     {
@@ -15,10 +64,7 @@ bool HeigthMap::initializeHeigthMap(){
         statusOK = initializeVertexArray();
     }
 
-    if ( statusOK )
-    {
-        statusOK = initializeMaterial();
-    }
+
 
     if ( statusOK )
     {
@@ -44,6 +90,9 @@ bool HeigthMap::initializeArrayBuffer()
     std::vector< glm::vec2 > textureCoordinates;
     std::vector< GLuint > triangleIndices;
 
+    plane(points,triangleIndices,108);
+
+#if 0
     // Positions
     points.push_back( glm::vec3( -1.f, -1.f,1 ) );
     points.push_back( glm::vec3( 1.f, -1.f,1 ) );
@@ -65,6 +114,7 @@ bool HeigthMap::initializeArrayBuffer()
     triangleIndices.push_back( 0 );
     triangleIndices.push_back( 2 );
     triangleIndices.push_back( 3 );
+#endif
 
     // Store useful variables (GPU memory allocation, rendering, etc...)
     numberOfVertices_ = static_cast< int >( points.size() );
@@ -91,6 +141,7 @@ bool HeigthMap::initializeArrayBuffer()
     // buffer courant : rien
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 
+#if 0
     // Texture coordinates buffer
     glGenBuffers( 1, &mHeigthMapTextureCoordinateBuffer );
     // buffer courant a manipuler
@@ -99,6 +150,7 @@ bool HeigthMap::initializeArrayBuffer()
     glBufferData( GL_ARRAY_BUFFER, numberOfVertices_ * sizeof( glm::vec2 ), textureCoordinates.data(), GL_STATIC_DRAW );
     // buffer courant : rien
     glBindBuffer( GL_ARRAY_BUFFER, 0 );
+#endif
 
     return statusOK;
 }
@@ -130,6 +182,7 @@ bool HeigthMap::initializeVertexArray()
     // Index buffer
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, mHeigthMapIndexBuffer );
 
+#if 0
     // - bind VBO as current buffer (in OpenGL state machine)
     glBindBuffer( GL_ARRAY_BUFFER, mHeigthMapTextureCoordinateBuffer );
     // - specify the location and data format of the array of generic vertex attributes at index​ to use when rendering
@@ -137,7 +190,7 @@ bool HeigthMap::initializeVertexArray()
     glVertexAttribPointer( textureBufferIndex/*index of the generic vertex attribute: VBO index (not its ID!)*/, 2/*nb elements in the attribute: (x,y,z)*/, GL_FLOAT/*type of data*/, GL_FALSE/*normalize data*/, 0/*stride*/, 0/*offset in memory*/ );
     // - enable or disable a generic vertex attribute array
     glEnableVertexAttribArray( textureBufferIndex/*index of the generic vertex attribute*/ );
-
+#endif
     // - unbind VAO (0 is the default resource ID in OpenGL)
     glBindVertexArray( 0 );
     // - unbind VBO (0 is the default resource ID in OpenGL)
@@ -153,11 +206,10 @@ bool HeigthMap::initializeMaterial()
 {
     bool statusOK = true;
 
-    int textureWidth;
-    int textureHeight;
+
     std::cout << ImgRepository << std::endl;
-    unsigned char* image = SOIL_load_image( ImgRepository.c_str(), &textureWidth,
-    &textureHeight, 0, SOIL_LOAD_RGB );
+    image = SOIL_load_image( ImgRepository.c_str(), &textureWidth,
+    &textureHeight, 0, SOIL_LOAD_L );
     std::cout << "h : " << textureHeight << " w : " << textureWidth << std::endl;
 
 
@@ -174,7 +226,7 @@ bool HeigthMap::initializeMaterial()
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
 
-    #if 1
+    #if 0
     glTexImage2D(GL_TEXTURE_2D/*target*/,
                     0/*level*/,
                     GL_RGB/*internal format*/,
@@ -184,7 +236,7 @@ bool HeigthMap::initializeMaterial()
                     GL_UNSIGNED_BYTE/*type*/,
                     image/*pixels => le contenu de l’image chargée*/);
     #endif
-    SOIL_free_image_data(image);
+    //SOIL_free_image_data(image);
 
 
     return statusOK;
@@ -226,13 +278,15 @@ bool HeigthMap::initializeShaderProgram()
         "                                              \n"
         " // OUTPUT                                    \n"
         " out vec2 uv;                                 \n"
+        " out float heigth;                                 \n"
         "                                              \n"
         " // MAIN                                      \n"
         "void main( void )                             \n"
         "{                                             \n"
         "    // Send position to Clip-space            \n"
+        "   heigth = position.y+1.f;            \n"
         "    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4( position, 1.0 ); \n"
-        "    uv = textureCoordinate;                                          \n"
+        //"    uv = textureCoordinate;                                          \n"
         "}                                             \n"
     };
 
@@ -243,6 +297,7 @@ bool HeigthMap::initializeShaderProgram()
         "                                              \n"
         " // INPUT                                     \n"
         " in vec2 uv;                                  \n"
+        " in float heigth;                                 \n"
         "                                              \n"
         " // UNIFORM                                   \n"
         " // - mesh                                    \n"
@@ -258,10 +313,15 @@ bool HeigthMap::initializeShaderProgram()
         " // MAIN                                      \n"
         "void main( void )                             \n"
         "{                                             \n"
-        "    vec4 color = texture(meshTexture,vec2(uv.s,1.0-uv.t));                  \n"
+        "       vec4 color = vec4(heigth,0,0,1);                                       \n"
+        "    if(heigth<0.3)                                          \n"
+        "       color = vec4(0,0,heigth,1);                                       \n"
+        "    if(heigth>=0.3 && heigth < 0.6)                                          \n"
+        "       color = vec4(0,heigth,0,1);                                       \n"
+        "    if(heigth>=0.6)                                          \n"
+        "       color = vec4(heigth,heigth,heigth,1);                  \n"
         "    // Use animation                          \n"
         "    fragmentColor = color;   \n"
-        "    gl_FragCoord.y = uv.s;   \n"
         "}                                             \n"
     };
 
