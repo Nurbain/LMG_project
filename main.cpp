@@ -1008,7 +1008,7 @@ int main( int argc, char** argv )
     terrain.ImgRepository = dataRepository+"/../LMG_project/HeigthMap/chili.jpg";
 
     //Load le mesh 3D
-    model.loadMesh(dataRepository+"/../LMG_project/PhotoExemple/tigre.obj");
+    model.loadMesh(dataRepository+"/../LMG_project/Model3D/loup.obj");
 
     // Initialize the GLUT library
     glutInit( &argc, argv );
