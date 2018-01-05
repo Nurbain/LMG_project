@@ -63,6 +63,15 @@ GLuint indexBuffer;
 // VAO (vertex array object) : used to encapsulate several VBO
 GLuint vertexArray;
 
+// VBO (vertex buffer object) : used to store positions coordinates at each point
+std::vector<GLuint> positionBuffers;
+// VBO (vertex buffer object) : used to store normales at each point
+std::vector<GLuint> normalBuffers;
+// VBO (vertex buffer object) : used to store positions index
+std::vector<GLuint> indexBuffers;
+// VAO (vertex array object) : used to encapsulate several VBO
+std::vector<GLuint> vertexArrays;
+
 // Mesh
 int numberOfVertices_;
 int numberOfIndices_;
@@ -124,63 +133,6 @@ bool initializeShaderProgram();
 void initializeCamera();
 bool finalize();
 
-/******************************************************************************
- * Procdural mesh
- ******************************************************************************/
-void waves( std::vector< glm::vec3 >& points, std::vector< glm::vec3 >& normals, std::vector< GLuint >& triangleIndices, int nb )
-{
-    // Position and normal arrays
-    points.resize( nb * nb );
-    normals.resize( nb * nb );
-    for ( int j = 0; j < nb; ++j )
-    {
-        for ( int i = 0; i < nb; ++i )
-        {
-            // Current data index
-            const int k = j * nb + i;
-
-            // Current position
-            float x = 6.0f / nb * j - 3.000001f;
-            float y = 6.0f / nb * i - 3.000001f;
-
-            // Position
-            // analytic function: sinus (with altitude attenuation)
-            // - altitude (use polar coordinates)
-            const float r = std::sqrt( x * x + y * y );
-//          const float h = 0.4f*std::sin(M_PI/2.0+r*7);
-            const float h = 0.4f * ( 1 - r / 5 ) * std::sin( glm::pi< float >() / 2.0 + r * 5 );
-            // - store position
-//          points[ k ] = { x, y, h };
-            points[ k ] = { x, h, y };
-
-            // Normal
-            // - derivative of analytic function (use polar coordinates)
-            //const float dh = 7*0.4f*std::cos(M_PI/2.0+r*7);
-            const float dh = -0.4 / 5 * std::sin( glm::pi< float >() / 2.0 + r * 5 ) + 0.4f * ( 1 - r / 5 ) * 5 * std::cos( glm::pi< float >() / 2.0 + r * 5 );
-            // - derivative is the tangent, need to retrieve normal from tangent (easy in 2D)
-            const glm::vec3 n = { -x / r * dh, -y / r * dh, 1 };
-            // - store normal
-            normals[ k ]= glm::normalize( n );
-        }
-    }
-
-    // Index array
-    triangleIndices.reserve( 6 * ( nb - 1 ) * ( nb - 1 ) );
-    for ( int j = 1; j < nb; ++j )
-        for ( int i = 1; i < nb; ++i )
-        {
-            // Current data index
-            const int k = j * nb + i;
-            // triangle
-            triangleIndices.push_back( k );
-            triangleIndices.push_back( k - nb );
-            triangleIndices.push_back( k - nb - 1 );
-            // triangle
-            triangleIndices.push_back( k );
-            triangleIndices.push_back( k - nb - 1 );
-            triangleIndices.push_back( k - 1 );
-        }
-}
 
 /******************************************************************************
  * Helper function used to load shader source code from files
@@ -309,53 +261,59 @@ bool initializeArrayBuffer()
     bool statusOK = true;
 
     std::cout << "Initialize array buffer..." << std::endl;
+    positionBuffers.resize(model.nb_mesh);
+    normalBuffers.resize(model.nb_mesh);
+    indexBuffers.resize(model.nb_mesh);
 
-    // In this example, we want to display one triangle
+    for(int i=0;i<model.nb_mesh;i++){
+        // In this example, we want to display one triangle
 
-    // Buffer of positions on CPU (host)
-    std::vector< glm::vec3 > points;
-    std::vector< glm::vec3 > normals;
-    std::vector< GLuint > triangleIndices;
-    //const int nb = 100;
+        // Buffer of positions on CPU (host)
+        std::vector< glm::vec3 > points;
+        std::vector< glm::vec3 > normals;
+        std::vector< GLuint > triangleIndices;
+        //const int nb = 100;
 
-    //Ici on prends les données #1
-    //waves( points, normals, triangleIndices, nb );
+        //Ici on prends les données #1
+        //waves( points, normals, triangleIndices, nb );
 
-    points = model.vertices[0];
-    triangleIndices = model.indices[0];
-    normals = model.normals[0];
 
-    //Puis on envoie dans le VBO
-    numberOfVertices_ = static_cast< int >( points.size() );
-    numberOfIndices_ = static_cast< int >( triangleIndices.size() );
+        points = model.vertices[i];
+        triangleIndices = model.indices[i];
+        normals = model.normals[i];
 
-    // Position buffer
-    glGenBuffers( 1, &positionBuffer );
-    // buffer courant a manipuler
-    glBindBuffer( GL_ARRAY_BUFFER, positionBuffer );
-    // definit la taille du buffer et le remplit
-    glBufferData( GL_ARRAY_BUFFER, numberOfVertices_ * sizeof( glm::vec3 ), points.data(), GL_STATIC_DRAW );
-    // buffer courant : rien
-    glBindBuffer( GL_ARRAY_BUFFER, 0 );
+        //Puis on envoie dans le VBO
+        numberOfVertices_ = static_cast< int >( points.size() );
+        numberOfIndices_ = static_cast< int >( triangleIndices.size() );
 
-      // Position buffer
-    glGenBuffers( 1, &normalBuffer );
-    // buffer courant a manipuler
-    glBindBuffer( GL_ARRAY_BUFFER, normalBuffer);
-    // definit la taille du buffer et le remplit
-    glBufferData( GL_ARRAY_BUFFER, numberOfVertices_ * sizeof( glm::vec3 ), normals.data(), GL_STATIC_DRAW );
-    // buffer courant : rien
-    glBindBuffer( GL_ARRAY_BUFFER, 0 );
+        // Position buffer
+        glGenBuffers( 1, &positionBuffers[i] );
+        // buffer courant a manipuler
+        glBindBuffer( GL_ARRAY_BUFFER, positionBuffers[i] );
+        // definit la taille du buffer et le remplit
+        glBufferData( GL_ARRAY_BUFFER, numberOfVertices_ * sizeof( glm::vec3 ), points.data(), GL_STATIC_DRAW );
+        // buffer courant : rien
+        glBindBuffer( GL_ARRAY_BUFFER, 0 );
 
-    // Index buffer
-    // - this buffer is used to separate topology from positions: send points + send toplogy (triangle: 3 vertex indices)
-    glGenBuffers( 1, &indexBuffer );
-    // buffer courant a manipuler
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, indexBuffer );
-    // definit la taille du buffer et le remplit
-    glBufferData( GL_ELEMENT_ARRAY_BUFFER, numberOfIndices_ * sizeof( GLuint ), triangleIndices.data(), GL_STATIC_DRAW );
-    // buffer courant : rien
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+          // Position buffer
+        glGenBuffers( 1, &normalBuffers[i] );
+        // buffer courant a manipuler
+        glBindBuffer( GL_ARRAY_BUFFER, normalBuffers[i]);
+        // definit la taille du buffer et le remplit
+        glBufferData( GL_ARRAY_BUFFER, numberOfVertices_ * sizeof( glm::vec3 ), normals.data(), GL_STATIC_DRAW );
+        // buffer courant : rien
+        glBindBuffer( GL_ARRAY_BUFFER, 0 );
+
+        // Index buffer
+        // - this buffer is used to separate topology from positions: send points + send toplogy (triangle: 3 vertex indices)
+        glGenBuffers( 1, &indexBuffers[i] );
+        // buffer courant a manipuler
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, indexBuffers[i] );
+        // definit la taille du buffer et le remplit
+        glBufferData( GL_ELEMENT_ARRAY_BUFFER, numberOfIndices_ * sizeof( GLuint ), triangleIndices.data(), GL_STATIC_DRAW );
+        // buffer courant : rien
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+    }
 
     // Mesh parameter(s)
     _meshColor = glm::vec3( 0.f, 1.f, 0.f );
@@ -372,34 +330,39 @@ bool initializeVertexArray()
 
     std::cout << "Initialize vertex array..." << std::endl;
 
-    // Create a vertex array to encapsulate all VBO
-    // - generate a VAO ID
-    glGenVertexArrays( 1, &vertexArray );
+    vertexArrays.resize(model.nb_mesh);
 
-    // - bind VAO as current vertex array (in OpenGL state machine)
-    glBindVertexArray( vertexArray );
+    for(int i=0;i<model.nb_mesh;i++){
+        // Create a vertex array to encapsulate all VBO
+        // - generate a VAO ID
+        glGenVertexArrays( 1, &vertexArrays[i] );
 
-    // - bind VBO as current buffer (in OpenGL state machine)
-    glBindBuffer( GL_ARRAY_BUFFER, positionBuffer );
-    // - specify the location and data format of the array of generic vertex attributes at index​ to use when rendering
-    glVertexAttribPointer( 0/*index of the generic vertex attribute: VBO index (not its ID!)*/, 3/*nb elements in the attribute: (x,y,z)*/, GL_FLOAT/*type of data*/, GL_FALSE/*normalize data*/, 0/*stride*/, 0/*offset in memory*/ );
-    // - enable or disable a generic vertex attribute array
-    glEnableVertexAttribArray( 0/*index of the generic vertex attribute*/ );
+        // - bind VAO as current vertex array (in OpenGL state machine)
+        glBindVertexArray( vertexArrays[i] );
 
-    // - bind VBO as current buffer (in OpenGL state machine)
-    glBindBuffer( GL_ARRAY_BUFFER, normalBuffer );
-    // - specify the location and data format of the array of generic vertex attributes at index​ to use when rendering
-    glVertexAttribPointer( 1/*index of the generic vertex attribute: VBO index (not its ID!)*/, 3/*nb elements in the attribute: (x,y,z)*/, GL_FLOAT/*type of data*/, GL_FALSE/*normalize data*/, 0/*stride*/, 0/*offset in memory*/ );
-    // - enable or disable a generic vertex attribute array
-    glEnableVertexAttribArray( 1/*index of the generic vertex attribute*/ );
+        // - bind VBO as current buffer (in OpenGL state machine)
+        glBindBuffer( GL_ARRAY_BUFFER, positionBuffers[i] );
+        // - specify the location and data format of the array of generic vertex attributes at index​ to use when rendering
+        glVertexAttribPointer( 0/*index of the generic vertex attribute: VBO index (not its ID!)*/, 3/*nb elements in the attribute: (x,y,z)*/, GL_FLOAT/*type of data*/, GL_FALSE/*normalize data*/, 0/*stride*/, 0/*offset in memory*/ );
+        // - enable or disable a generic vertex attribute array
+        glEnableVertexAttribArray( 0/*index of the generic vertex attribute*/ );
 
-    // Index buffer
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, indexBuffer );
+        // - bind VBO as current buffer (in OpenGL state machine)
+        glBindBuffer( GL_ARRAY_BUFFER, normalBuffers[i] );
+        // - specify the location and data format of the array of generic vertex attributes at index​ to use when rendering
+        glVertexAttribPointer( 1/*index of the generic vertex attribute: VBO index (not its ID!)*/, 3/*nb elements in the attribute: (x,y,z)*/, GL_FLOAT/*type of data*/, GL_FALSE/*normalize data*/, 0/*stride*/, 0/*offset in memory*/ );
+        // - enable or disable a generic vertex attribute array
+        glEnableVertexAttribArray( 1/*index of the generic vertex attribute*/ );
 
-    // - unbind VAO (0 is the default resource ID in OpenGL)
-    glBindVertexArray( 0 );
-    // - unbind VBO (0 is the default resource ID in OpenGL)
-    glBindBuffer( GL_ARRAY_BUFFER, 0 );
+        // Index buffer
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, indexBuffers[i] );
+
+        // - unbind VAO (0 is the default resource ID in OpenGL)
+        glBindVertexArray( 0 );
+        // - unbind VBO (0 is the default resource ID in OpenGL)
+        glBindBuffer( GL_ARRAY_BUFFER, 0 );
+
+    }
 
     return statusOK;
 }
@@ -763,110 +726,113 @@ void display( void )
     //--------------------------------------------------------------------------------
     // Activate shader program
     //--------------------------------------------------------------------------------
-    glUseProgram( shaderProgram );
+    for(int i=0;i<model.nb_mesh;i++){
+        glUseProgram( shaderProgram );
 
 
 
-    //--------------------------------------------------------------------------------
-    // Send uniforms to GPU
-    //--------------------------------------------------------------------------------
+        //--------------------------------------------------------------------------------
+        // Send uniforms to GPU
+        //--------------------------------------------------------------------------------
 
 
-    // Camera
-    // - view matrix
-    uniformLocation = glGetUniformLocation( shaderProgram, "viewMatrix" );
-    if ( uniformLocation >= 0 )
-    {
-        glUniformMatrix4fv( uniformLocation, 1, GL_FALSE, glm::value_ptr( viewMatrix ) );
-    }
-    // - projection matrix
-    uniformLocation = glGetUniformLocation( shaderProgram, "projectionMatrix" );
-    if ( uniformLocation >= 0 )
-    {
-        glUniformMatrix4fv( uniformLocation, 1, GL_FALSE, glm::value_ptr( projectionMatrix ) );
-    }
-    // Mesh
-    // - model matrix
-    uniformLocation = glGetUniformLocation( shaderProgram, "modelMatrix" );
-    if ( uniformLocation >= 0 )
-    {
-        glUniformMatrix4fv( uniformLocation, 1, GL_FALSE, glm::value_ptr( modelMatrix ) );
-    }
-    // - normal matrix
-    uniformLocation = glGetUniformLocation( shaderProgram, "normalMatrix" );
-    if ( uniformLocation >= 0 )
-    {
-        glm::mat3 normalMatrix = glm::transpose( glm::inverse( glm::mat3( viewMatrix * modelMatrix ) ) );
-        glUniformMatrix3fv( uniformLocation, 1, GL_FALSE, glm::value_ptr( normalMatrix ) );
-    }
-    // - mesh color
-    uniformLocation = glGetUniformLocation( shaderProgram, "meshColor" );
-    if ( uniformLocation >= 0 )
-    {
-        glUniform3fv( uniformLocation, 1, glm::value_ptr( _meshColor ) );
-    }
-    uniformLocation = glGetUniformLocation( shaderProgram, "materialKd" );
-    if ( uniformLocation >= 0 )
-    {
-        _materialKd = glm::vec3( 0.f, 0.f, 1.f );
-        glUniform3fv( uniformLocation, 1, glm::value_ptr( _materialKd ) );
-    }
-    uniformLocation = glGetUniformLocation( shaderProgram, "materialKs" );
-    if ( uniformLocation >= 0 )
-    {
-        _materialKs = glm::vec3( 1.f, 1.f, 1.f );
-        glUniform3fv( uniformLocation, 1, glm::value_ptr( _materialKs ) );
-    }
-    uniformLocation = glGetUniformLocation( shaderProgram, "materialShininess" );
-    if ( uniformLocation >= 0 )
-    {
-        _materialShininess = 20.f;
-        glUniform1f( uniformLocation, _materialShininess );
-    }
-    // - light
-    uniformLocation = glGetUniformLocation( shaderProgram, "lightPosition" );
-    if ( uniformLocation >= 0 )
-    {
-        _lightPosition = glm::vec3( 0.f, 2.f, 3.f );
-        glUniform3fv( uniformLocation, 1, glm::value_ptr( _lightPosition ) );
-    }
-    // - light
-    uniformLocation = glGetUniformLocation( shaderProgram, "lightColor" );
-    if ( uniformLocation >= 0 )
-    {
-        _lightColor = glm::vec3( 1.f, 1.f, 1.f );
-        glUniform3fv( uniformLocation, 1, glm::value_ptr( _lightColor ) );
-    }
-    // Animation
-    uniformLocation = glGetUniformLocation( shaderProgram, "time" );
-    if ( uniformLocation >= 0 )
-    {
-        glUniform1f( uniformLocation, static_cast< float >( currentTime ) );
-    }
+        // Camera
+        // - view matrix
+        uniformLocation = glGetUniformLocation( shaderProgram, "viewMatrix" );
+        if ( uniformLocation >= 0 )
+        {
+            glUniformMatrix4fv( uniformLocation, 1, GL_FALSE, glm::value_ptr( viewMatrix ) );
+        }
+        // - projection matrix
+        uniformLocation = glGetUniformLocation( shaderProgram, "projectionMatrix" );
+        if ( uniformLocation >= 0 )
+        {
+            glUniformMatrix4fv( uniformLocation, 1, GL_FALSE, glm::value_ptr( projectionMatrix ) );
+        }
+        // Mesh
+        // - model matrix
+        uniformLocation = glGetUniformLocation( shaderProgram, "modelMatrix" );
+        if ( uniformLocation >= 0 )
+        {
+            glUniformMatrix4fv( uniformLocation, 1, GL_FALSE, glm::value_ptr( modelMatrix ) );
+        }
+        // - normal matrix
+        uniformLocation = glGetUniformLocation( shaderProgram, "normalMatrix" );
+        if ( uniformLocation >= 0 )
+        {
+            glm::mat3 normalMatrix = glm::transpose( glm::inverse( glm::mat3( viewMatrix * modelMatrix ) ) );
+            glUniformMatrix3fv( uniformLocation, 1, GL_FALSE, glm::value_ptr( normalMatrix ) );
+        }
+        // - mesh color
+        uniformLocation = glGetUniformLocation( shaderProgram, "meshColor" );
+        if ( uniformLocation >= 0 )
+        {
+            glUniform3fv( uniformLocation, 1, glm::value_ptr( _meshColor ) );
+        }
+        uniformLocation = glGetUniformLocation( shaderProgram, "materialKd" );
+        if ( uniformLocation >= 0 )
+        {
+            _materialKd = glm::vec3( 0.f, 0.f, 1.f );
+            glUniform3fv( uniformLocation, 1, glm::value_ptr( _materialKd ) );
+        }
+        uniformLocation = glGetUniformLocation( shaderProgram, "materialKs" );
+        if ( uniformLocation >= 0 )
+        {
+            _materialKs = glm::vec3( 1.f, 1.f, 1.f );
+            glUniform3fv( uniformLocation, 1, glm::value_ptr( _materialKs ) );
+        }
+        uniformLocation = glGetUniformLocation( shaderProgram, "materialShininess" );
+        if ( uniformLocation >= 0 )
+        {
+            _materialShininess = 20.f;
+            glUniform1f( uniformLocation, _materialShininess );
+        }
+        // - light
+        uniformLocation = glGetUniformLocation( shaderProgram, "lightPosition" );
+        if ( uniformLocation >= 0 )
+        {
+            _lightPosition = glm::vec3( 0.f, 2.f, 3.f );
+            glUniform3fv( uniformLocation, 1, glm::value_ptr( _lightPosition ) );
+        }
+        // - light
+        uniformLocation = glGetUniformLocation( shaderProgram, "lightColor" );
+        if ( uniformLocation >= 0 )
+        {
+            _lightColor = glm::vec3( 1.f, 1.f, 1.f );
+            glUniform3fv( uniformLocation, 1, glm::value_ptr( _lightColor ) );
+        }
+        // Animation
+        uniformLocation = glGetUniformLocation( shaderProgram, "time" );
+        if ( uniformLocation >= 0 )
+        {
+            glUniform1f( uniformLocation, static_cast< float >( currentTime ) );
+        }
 
 
-    //--------------------------------------------------------------------------------
-    // Render scene
-    //--------------------------------------------------------------------------------
-    // Set GL state(s) (fixed pipeline)
-    //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+        //--------------------------------------------------------------------------------
+        // Render scene
+        //--------------------------------------------------------------------------------
+        // Set GL state(s) (fixed pipeline)
+        //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
-    // - bind VAO as current vertex array (in OpenGL state machine)
-    glBindVertexArray( vertexArray );
-    // - draw command
-    glDrawElements(
-         GL_TRIANGLES,      // mode
-         numberOfIndices_,  // count
-         GL_UNSIGNED_INT,   // data type
-         (void*)0           // element array buffer offset
-        );
-    // - unbind VAO (0 is the default resource ID in OpenGL)
-    glBindVertexArray( 0 );
-    // Reset GL state(s) (fixed pipeline)
-    //glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+        // - bind VAO as current vertex array (in OpenGL state machine)
+        glBindVertexArray( vertexArrays[i] );
+        // - draw command
+        glDrawElements(
+             GL_TRIANGLES,      // mode
+             numberOfIndices_,  // count
+             GL_UNSIGNED_INT,   // data type
+             (void*)0           // element array buffer offset
+            );
+        // - unbind VAO (0 is the default resource ID in OpenGL)
+        glBindVertexArray( 0 );
+        // Reset GL state(s) (fixed pipeline)
+        //glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
-    // Deactivate current shader program
-    glUseProgram( 0 );
+        // Deactivate current shader program
+        glUseProgram( 0 );
+    }
+
 
     //--------------------------------------------------------------------------------
     // END frame

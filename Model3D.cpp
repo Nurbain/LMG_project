@@ -10,4 +10,5 @@ void Model3D::loadMesh(const std::string filename){
     assert(statusOk);
     bool loadOk = _Loader->loadData(vertices,normals,indices);
     assert(loadOk);
+    nb_mesh = _Loader->_scene->mNumMeshes;
 }

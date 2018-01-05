@@ -17,6 +17,7 @@ public:
     vector<vector<glm::vec3>> vertices;
     vector<vector<glm::vec3>> normals;
     vector<vector<unsigned int>> indices;
+    int nb_mesh;
     Model3D();
     void loadMesh(const std::string filename);
     void initialize(const std::vector<std::vector<glm::vec3>>& position,std::vector<std::vector<unsigned int> > &);
