@@ -136,12 +136,12 @@ bool SkyBox::initializeCubemapTextures(){
     // - be consistent with cubemap's internal OpenGL face ordering
     const std::string envmapRepository = ImgRepository;
     std::vector< std::string > envmapTextures( 6 );
-    envmapTextures[ 0 ] = envmapRepository+"back.jpg";
-    envmapTextures[ 1 ] = envmapRepository+"right.jpg";
+    envmapTextures[ 0 ] = envmapRepository+"front.jpg";
+    envmapTextures[ 1 ] = envmapRepository+"back.jpg";
     envmapTextures[ 2 ] = envmapRepository+"top.jpg";
-    envmapTextures[ 3 ] = envmapRepository+"top.jpg";
-    envmapTextures[ 4 ] = envmapRepository+"back.jpg";
-    envmapTextures[ 5 ] = envmapRepository+"front.jpg";
+    envmapTextures[ 3 ] = envmapRepository+"down.jpg";
+    envmapTextures[ 4 ] = envmapRepository+"right.jpg";
+    envmapTextures[ 5 ] = envmapRepository+"left.jpg";
 
     // Fille the cubemap texture
     // - load 6 faces individually with your image library (ex: SOIL) in textures
