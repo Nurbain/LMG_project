@@ -10,6 +10,7 @@
 
 // System
 #include <cstdio>
+#include <cmath>
 
 // Graphics
 // - GLEW (always before "gl.h")
@@ -849,40 +850,97 @@ void display( void )
  ******************************************************************************/
 void keyboard_CB(unsigned char key, int x, int y)
 {
+    glm::mat4 transformMatrix;
+    glm::mat4 rotateMatrix;
+    glm::vec4 _cameraEyeTransform = glm::vec4(_cameraEye.x,_cameraEye.y,_cameraEye.z,1);
+    float speedX = Speed,speedZ= Speed,speedY= Speed,pasX=1,pasY = 1 ,pasZ = 1;
     switch (key) {
     case 'z':
-        if(_cameraEye.z < 0){
-           if(_cameraEye.z > -(CubeMap.scale - Speed)){
-               _cameraEye = _cameraEye - glm::vec3( 0.f, 0.f, Speed);
-           }
-        }else
-            _cameraEye = _cameraEye - glm::vec3( 0.f, 0.f, Speed);
-        break;
-    case 's':
-        if(_cameraEye.z > 0){
-            if(_cameraEye.z < (CubeMap.scale - Speed)){
-                _cameraEye = _cameraEye + glm::vec3( 0.f, 0.f, Speed);
+            if(_cameraEye.x == 0 && _cameraEye.z == 0){
+                break;
             }
-        }else
-            _cameraEye = _cameraEye + glm::vec3( 0.f, 0.f, Speed);;
-        break;
-    case 'q':
-        if(_cameraEye.x < 0){
-           if(_cameraEye.x > -(CubeMap.scale - Speed)){
-                _cameraEye = _cameraEye - glm::vec3( Speed, 0.f, 0.f);
-           }
-        }else
-             _cameraEye = _cameraEye - glm::vec3( Speed, 0.f, 0.f);
-        break;
-    case 'd':
-        if(_cameraEye.x > 0){
-            if(_cameraEye.x < (CubeMap.scale - Speed)){
-                _cameraEye = _cameraEye + glm::vec3( Speed, 0.f, 0.f);
+
+            if(fabs(_cameraEye.x)>fabs(_cameraEye.z)){
+                pasZ = fabs(_cameraEye.z * 100) / fabs(_cameraEye.x)/100;
+            }else if(fabs(_cameraEye.z)>fabs(_cameraEye.x)){
+                pasX = fabs(_cameraEye.x * 100) / fabs(_cameraEye.z)/100;
             }
-        }else
-             _cameraEye = _cameraEye + glm::vec3( Speed, 0.f, 0.f);
+
+            speedX = (_cameraEye.x<0) ? speedX : -speedX;
+            speedX = speedX * pasX;
+
+            speedZ = (_cameraEye.z<0) ? speedZ : -speedZ;
+            speedZ = speedZ * pasZ;
+
+            if(_cameraEye.x == 0){
+                transformMatrix = glm::translate(transformMatrix,glm::vec3( 0.f, 0.f, speedZ));
+            }else if(_cameraEye.z == 0){
+                transformMatrix = glm::translate(transformMatrix,glm::vec3( speedX, 0.f, 0.f));
+            }else{
+                transformMatrix = glm::translate(transformMatrix,glm::vec3( speedX, 0.f, speedZ));
+            }
+            _cameraEyeTransform = transformMatrix*_cameraEyeTransform;
+            _cameraEye =  glm::vec3(_cameraEyeTransform.x,_cameraEyeTransform.y,_cameraEyeTransform.z);
 
         break;
+    case 's':
+        if(fabs(_cameraEye.x) > CubeMap.scale-Speed || fabs(_cameraEye.z) > CubeMap.scale-Speed){
+            break;
+        }
+
+        if(fabs(_cameraEye.x)>fabs(_cameraEye.z)){
+            pasZ = fabs(_cameraEye.z * 100) / fabs(_cameraEye.x)/100;
+        }else if(fabs(_cameraEye.z)>fabs(_cameraEye.x)){
+            pasX = fabs(_cameraEye.x * 100) / fabs(_cameraEye.z)/100;
+        }
+
+        speedX = (_cameraEye.x<0) ? -speedX : speedX;
+        speedX = speedX * pasX;
+
+        speedZ = (_cameraEye.z<0) ? -speedZ : speedZ;
+        speedZ = speedZ * pasZ;
+
+        if(_cameraEye.x == 0){
+            transformMatrix = glm::translate(transformMatrix,glm::vec3( 0.f, 0.f, speedZ));
+        }else if(_cameraEye.z == 0){
+            transformMatrix = glm::translate(transformMatrix,glm::vec3( speedX, 0.f, 0.f));
+        }else{
+            transformMatrix = glm::translate(transformMatrix,glm::vec3( speedX, 0.f, speedZ));
+        }
+        _cameraEyeTransform = transformMatrix*_cameraEyeTransform;
+        _cameraEye =  glm::vec3(_cameraEyeTransform.x,_cameraEyeTransform.y,_cameraEyeTransform.z);
+
+    break;
+    case 'q':
+        rotateMatrix = glm::rotate(rotateMatrix,-0.1f,glm::vec3(0.f,1.f,0.f));
+        _cameraEyeTransform = rotateMatrix*_cameraEyeTransform;
+
+        if(fabs(_cameraEyeTransform.x) > CubeMap.scale){
+            _cameraEye=glm::vec3(_cameraEye.x,_cameraEyeTransform.y,_cameraEyeTransform.z);
+            break;
+        }
+        if(fabs(_cameraEyeTransform.z) > CubeMap.scale){
+            _cameraEye=glm::vec3(_cameraEyeTransform.x,_cameraEyeTransform.y,_cameraEye.z);
+            break;
+        }
+        _cameraEye=glm::vec3(_cameraEyeTransform.x,_cameraEyeTransform.y,_cameraEyeTransform.z);
+
+    break;
+    case 'd':
+        rotateMatrix = glm::rotate(rotateMatrix,0.1f,glm::vec3(0.f,1.f,0.f));
+        _cameraEyeTransform = rotateMatrix*_cameraEyeTransform;
+
+        if(fabs(_cameraEyeTransform.x) > CubeMap.scale){
+            _cameraEye=glm::vec3(_cameraEye.x,_cameraEyeTransform.y,_cameraEyeTransform.z);
+            break;
+        }
+        if(fabs(_cameraEyeTransform.z) > CubeMap.scale){
+            _cameraEye=glm::vec3(_cameraEyeTransform.x,_cameraEyeTransform.y,_cameraEye.z);
+            break;
+        }
+        _cameraEye=glm::vec3(_cameraEyeTransform.x,_cameraEyeTransform.y,_cameraEyeTransform.z);
+
+    break;
     case ' ':
         if(_cameraEye.y > 0){
             if(_cameraEye.y < (CubeMap.scale - Speed)){
@@ -907,6 +965,7 @@ void keyboard_CB(unsigned char key, int x, int y)
         break;
     }
 }
+
 
 
 void special_CB(int key, int x, int y)
