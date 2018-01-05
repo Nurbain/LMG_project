@@ -20,7 +20,7 @@ void HeigthMap::plane( std::vector< glm::vec3 >& points,std::vector< glm::vec3 >
             int y_tex = (float)i/(float)nb * (this->textureHeight-1);
 
             // Position
-            const float h = (float)image[x_tex+y_tex*(this->textureHeight-1)]/255.f -1;
+            const float h = (float)image[x_tex+y_tex*(this->textureHeight)]/255.f -1;
             //const float h = -1;
             // - store position
             points[ k ] = { x, h, y };
@@ -240,11 +240,11 @@ bool HeigthMap::initializeVertexArray()
 bool HeigthMap::initializeMaterial()
 {
     bool statusOK = true;
-
+    int channel;
 
     std::cout << ImgRepository << std::endl;
     image = SOIL_load_image( ImgRepository.c_str(), &textureWidth,
-    &textureHeight, 0, SOIL_LOAD_L );
+    &textureHeight, &channel, SOIL_LOAD_L );
     std::cout << "h : " << textureHeight << " w : " << textureWidth << std::endl;
 
 
