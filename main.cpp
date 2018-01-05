@@ -649,6 +649,7 @@ void display( void )
     //--------------------------------------------------------------------------------
 
     glUseProgram( terrain.mHeigthMapShaderProgram );
+
     //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
         //--------------------
@@ -679,7 +680,8 @@ void display( void )
         uniformLocation = glGetUniformLocation( terrain.mHeigthMapShaderProgram, "modelMatrix" );
         if ( uniformLocation >= 0 )
         {
-            glUniformMatrix4fv( uniformLocation, 1, GL_FALSE, glm::value_ptr( modelMatrix ) );
+            glm::mat4 modelMatrix_heigth = glm::scale( modelMatrix, glm::vec3( CubeMap.scale, CubeMap.scale, CubeMap.scale ) );
+            glUniformMatrix4fv( uniformLocation, 1, GL_FALSE, glm::value_ptr(modelMatrix_heigth ) );
         }
         // - normal matrix
         uniformLocation = glGetUniformLocation(  terrain.mHeigthMapShaderProgram, "normalMatrix" );

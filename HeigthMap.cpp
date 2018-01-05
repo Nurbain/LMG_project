@@ -13,8 +13,8 @@ void HeigthMap::plane( std::vector< glm::vec3 >& points,std::vector< glm::vec3 >
             const int k = j * nb + i;
 
             // Current position
-            float x = 6.0f / nb * j - 3.000001f;
-            float y = 6.0f / nb * i - 3.000001f;
+            float x = ((float)j/(float)nb)*2-1;
+            float y = ((float)i/(float)nb)*2-1;
 
             int x_tex = (float)j/(float)nb * (this->textureWidth-1);
             int y_tex = (float)i/(float)nb * (this->textureHeight-1);
@@ -110,7 +110,7 @@ bool HeigthMap::initializeArrayBuffer()
     std::vector< glm::vec2 > textureCoordinates;
     std::vector< GLuint > triangleIndices;
 
-    plane(points,normals,triangleIndices,1081);
+    plane(points,normals,triangleIndices,500);
 
 #if 0
     // Positions
