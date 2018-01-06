@@ -286,6 +286,7 @@ bool initializeArrayBuffer()
         //Puis on envoie dans le VBO
         numberOfVertices_ = static_cast< int >( points.size() );
         numberOfIndices_ = static_cast< int >( triangleIndices.size() );
+        std::cout << "vertices : " << numberOfVertices_ <<" indices : " << numberOfIndices_ << std::endl;
 
         // Position buffer
         glGenBuffers( 1, &positionBuffers[i] );
@@ -821,7 +822,7 @@ void display( void )
         // - draw command
         glDrawElements(
              GL_TRIANGLES,      // mode
-             numberOfIndices_,  // count
+             model.indices[i].size(),  // count
              GL_UNSIGNED_INT,   // data type
              (void*)0           // element array buffer offset
             );
@@ -1008,7 +1009,7 @@ int main( int argc, char** argv )
     terrain.ImgRepository = dataRepository+"/../LMG_project/HeigthMap/chili.jpg";
 
     //Load le mesh 3D
-    model.loadMesh(dataRepository+"/../LMG_project/Model3D/loup.obj");
+    model.loadMesh(dataRepository+"/../LMG_project/Model3D/meute.obj");
 
     // Initialize the GLUT library
     glutInit( &argc, argv );
