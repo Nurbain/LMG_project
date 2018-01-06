@@ -44,6 +44,7 @@
 #include "Model3D.h"
 #include "SkyBox.h"
 #include "HeigthMap.h"
+#include "Picking.h"
 
 
 
@@ -774,7 +775,10 @@ void display( void )
         uniformLocation = glGetUniformLocation( shaderProgram, "materialKd" );
         if ( uniformLocation >= 0 )
         {
-            _materialKd = glm::vec3( 0.f, 0.f, 1.f );
+            if(i==model.selectedModel)
+                _materialKd = glm::vec3( 0.f, 1.f, 0.f );
+            else
+                _materialKd = glm::vec3( 0.f, 0.f, 1.f );
             glUniform3fv( uniformLocation, 1, glm::value_ptr( _materialKd ) );
         }
         uniformLocation = glGetUniformLocation( shaderProgram, "materialKs" );
@@ -981,6 +985,48 @@ void special_CB(int key, int x, int y)
 
 void mouse_CB(int button, int state, int x, int y){
 //    const glm::mat4 viewMatrix = glm::lookAt( _cameraEye, _cameraCenter, _cameraUp );
+    if((button==GLUT_LEFT_BUTTON)&&(state==GLUT_DOWN)){
+        GLint m_viewport[4];
+
+        glGetIntegerv( GL_VIEWPORT, m_viewport );
+        std::cout << "click " << x << ":" << y << std::endl;
+
+        glm::vec3 ray_origin;
+        glm::vec3 ray_direction;
+        const glm::mat4 viewMatrix = glm::lookAt( _cameraEye, _cameraCenter, _cameraUp );
+        const glm::mat4 projectionMatrix = glm::perspective( _cameraFovY, _cameraAspect, _cameraZNear, _cameraZFar );
+        Picking::ScreenPosToWorldRay(
+            x, y,
+            m_viewport[2], m_viewport[3],
+            viewMatrix,
+            projectionMatrix,
+            ray_origin,
+            ray_direction
+        );
+        bool isSelected=false;
+        float previous_distance;
+        for(int i=0; i<model.nb_mesh; i++){
+
+            float intersection_distance; // Output of TestRayOBBIntersection()
+
+            if ( Picking::TestRayOBBIntersection(
+                ray_origin,
+                ray_direction,
+                model.aabb_min[i],
+                model.aabb_max[i],
+                model.transform[i],
+                intersection_distance) && (!isSelected || intersection_distance < previous_distance)
+            ){
+                model.setSelect(i);
+                std::cout << "mesh " << i << std::endl;
+                previous_distance = intersection_distance;
+                isSelected = true;
+            }
+        }
+        if(!isSelected)
+            model.setSelect(-1);
+    }
+
 }
 
 /******************************************************************************

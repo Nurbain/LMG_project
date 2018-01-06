@@ -17,7 +17,19 @@ public:
     vector<vector<glm::vec3>> vertices;
     vector<vector<glm::vec3>> normals;
     vector<vector<unsigned int>> indices;
+    vector<vector<glm::vec3>> OBBs;
     int nb_mesh;
+    vector<glm::mat4> transform;
+
+    vector<glm::vec3> aabb_min;
+    vector<glm::vec3> aabb_max;
+
+    int selectedModel;
+
+    void setSelect(int n){
+        selectedModel = n;
+    }
+
     Model3D();
     void loadMesh(const std::string filename);
     void initialize(const std::vector<std::vector<glm::vec3>>& position,std::vector<std::vector<unsigned int> > &);
