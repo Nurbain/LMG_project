@@ -17,10 +17,6 @@
 #include <assimp/DefaultLogger.hpp>
 #include <assimp/LogStream.hpp>
 
-struct Texture {
-    unsigned int id;
-    std::string type;
-};
 
 class AssetLoader{
 public:

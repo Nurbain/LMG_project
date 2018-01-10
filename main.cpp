@@ -74,6 +74,9 @@ std::vector<GLuint> indexBuffers;
 // VAO (vertex array object) : used to encapsulate several VBO
 std::vector<GLuint> vertexArrays;
 
+//Texture
+GLuint modelTexture;
+GLuint texture;
 // Mesh
 int numberOfVertices_;
 int numberOfIndices_;
@@ -106,6 +109,8 @@ float yaw = 0;
 float pitch = 0;
 float roll = 0;
 
+glm::mat4 viewMatrix =glm::mat4(1.0f);
+
 bool isMousePressed = false;
 glm::vec2 mouseLastPosition;
 
@@ -123,7 +128,7 @@ glm::vec3 _lightColor;
 std::string dataRepository;
 
 
-glm::mat4 viewMatrix =glm::mat4(1.0f);
+
 /******************************************************************************
  ***************************** TYPE DEFINITION ********************************
  ******************************************************************************/
@@ -138,6 +143,7 @@ glm::mat4 viewMatrix =glm::mat4(1.0f);
 
 bool initialize();
 bool checkExtensions();
+bool initializeModelTextures(const char *filename);
 bool initializeArrayBuffer();
 bool initializeVertexArray();
 bool initializeShaderProgram();
@@ -216,6 +222,11 @@ bool initialize()
     if ( statusOK )
     {
             statusOK = terrain.initializeHeigthMap();
+    }
+
+    if ( statusOK )
+    {
+            //Textures
     }
 
     initializeCamera();
@@ -563,9 +574,8 @@ void display( void )
     //--------------------------------------------------------------------------------
     // Retrieve camera parameters
     const glm::mat4 projectionMatrix = glm::perspective( _cameraFovY, _cameraAspect, _cameraZNear, _cameraZFar );
-    const glm::mat4 viewMatrix = glm::lookAt(_cameraEye,_cameraCenter,_cameraUp);
 
-    /*glm::mat4 matrixRoll  = glm::mat4(1.0f);
+    glm::mat4 matrixRoll  = glm::mat4(1.0f);
     glm::mat4 matrixPitch = glm::mat4(1.0f);
     glm::mat4 matrixYaw   = glm::mat4(1.0f);
 
@@ -575,8 +585,9 @@ void display( void )
 
     glm::mat4 rotate = matrixRoll * matrixPitch * matrixYaw;
     glm::mat4 translate = glm::mat4(1.0f);
+    translate = glm::translate(translate, -_cameraEye);
 
-    const glm::mat4 viewMatrix = rotate * translate;*/
+    viewMatrix = rotate * translate;
 
     GLint uniformLocation;
 
@@ -877,120 +888,35 @@ void display( void )
  ******************************************************************************/
 void keyboard_CB(unsigned char key, int x, int y)
 {
-    glm::mat4 transformMatrix;
-    glm::mat4 rotateMatrix;
-    glm::vec4 _cameraEyeTransform = glm::vec4(_cameraEye.x,_cameraEye.y,_cameraEye.z,1);
-    float speedX = Speed,speedZ= Speed,speedY= Speed,pasX=1,pasY = 1 ,pasZ = 1;
-    switch (key) {
+    switch(key){
+
     case 'z':
-            if(_cameraEye.x == 0 && _cameraEye.z == 0){
-                break;
-            }
+        _cameraEye += -Speed * glm::vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]);
+    break;
 
-            if(fabs(_cameraEye.x)>fabs(_cameraEye.z)){
-                pasZ = fabs(_cameraEye.z * 100) / fabs(_cameraEye.x)/100;
-            }else if(fabs(_cameraEye.z)>fabs(_cameraEye.x)){
-                pasX = fabs(_cameraEye.x * 100) / fabs(_cameraEye.z)/100;
-            }
-
-            speedX = (_cameraEye.x<0) ? speedX : -speedX;
-            speedX = speedX * pasX;
-
-            speedZ = (_cameraEye.z<0) ? speedZ : -speedZ;
-            speedZ = speedZ * pasZ;
-
-            if(_cameraEye.x == 0){
-                transformMatrix = glm::translate(transformMatrix,glm::vec3( 0.f, 0.f, speedZ));
-            }else if(_cameraEye.z == 0){
-                transformMatrix = glm::translate(transformMatrix,glm::vec3( speedX, 0.f, 0.f));
-            }else{
-                transformMatrix = glm::translate(transformMatrix,glm::vec3( speedX, 0.f, speedZ));
-            }
-            _cameraEyeTransform = transformMatrix*_cameraEyeTransform;
-            _cameraEye =  glm::vec3(_cameraEyeTransform.x,_cameraEyeTransform.y,_cameraEyeTransform.z);
-
-        break;
     case 's':
-        if(fabs(_cameraEye.x) > CubeMap.scale-Speed || fabs(_cameraEye.z) > CubeMap.scale-Speed){
-            break;
-        }
-
-        if(fabs(_cameraEye.x)>fabs(_cameraEye.z)){
-            pasZ = fabs(_cameraEye.z * 100) / fabs(_cameraEye.x)/100;
-        }else if(fabs(_cameraEye.z)>fabs(_cameraEye.x)){
-            pasX = fabs(_cameraEye.x * 100) / fabs(_cameraEye.z)/100;
-        }
-
-        speedX = (_cameraEye.x<0) ? -speedX : speedX;
-        speedX = speedX * pasX;
-
-        speedZ = (_cameraEye.z<0) ? -speedZ : speedZ;
-        speedZ = speedZ * pasZ;
-
-        if(_cameraEye.x == 0){
-            transformMatrix = glm::translate(transformMatrix,glm::vec3( 0.f, 0.f, speedZ));
-        }else if(_cameraEye.z == 0){
-            transformMatrix = glm::translate(transformMatrix,glm::vec3( speedX, 0.f, 0.f));
-        }else{
-            transformMatrix = glm::translate(transformMatrix,glm::vec3( speedX, 0.f, speedZ));
-        }
-        _cameraEyeTransform = transformMatrix*_cameraEyeTransform;
-        _cameraEye =  glm::vec3(_cameraEyeTransform.x,_cameraEyeTransform.y,_cameraEyeTransform.z);
-
+        _cameraEye += Speed * glm::vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]);
     break;
+
     case 'q':
-        rotateMatrix = glm::rotate(rotateMatrix,-0.1f,glm::vec3(0.f,1.f,0.f));
-        _cameraEyeTransform = rotateMatrix*_cameraEyeTransform;
+        _cameraEye += -Speed * glm::vec3(viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0]);
+        break;
 
-        if(fabs(_cameraEyeTransform.x) > CubeMap.scale){
-            _cameraEye=glm::vec3(_cameraEye.x,_cameraEyeTransform.y,_cameraEyeTransform.z);
-            break;
-        }
-        if(fabs(_cameraEyeTransform.z) > CubeMap.scale){
-            _cameraEye=glm::vec3(_cameraEyeTransform.x,_cameraEyeTransform.y,_cameraEye.z);
-            break;
-        }
-        _cameraEye=glm::vec3(_cameraEyeTransform.x,_cameraEyeTransform.y,_cameraEyeTransform.z);
-
-    break;
     case 'd':
-        rotateMatrix = glm::rotate(rotateMatrix,0.1f,glm::vec3(0.f,1.f,0.f));
-        _cameraEyeTransform = rotateMatrix*_cameraEyeTransform;
-
-        if(fabs(_cameraEyeTransform.x) > CubeMap.scale){
-            _cameraEye=glm::vec3(_cameraEye.x,_cameraEyeTransform.y,_cameraEyeTransform.z);
-            break;
-        }
-        if(fabs(_cameraEyeTransform.z) > CubeMap.scale){
-            _cameraEye=glm::vec3(_cameraEyeTransform.x,_cameraEyeTransform.y,_cameraEye.z);
-            break;
-        }
-        _cameraEye=glm::vec3(_cameraEyeTransform.x,_cameraEyeTransform.y,_cameraEyeTransform.z);
-
+        _cameraEye += Speed * glm::vec3(viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0]);
     break;
+
     case ' ':
-        if(_cameraEye.y > 0){
-            if(_cameraEye.y < (CubeMap.scale - Speed)){
-                _cameraEye = _cameraEye + glm::vec3( 0.f, Speed, 0.f);
-            }
-        }
-        else
-            _cameraEye = _cameraEye + glm::vec3( 0.f, Speed, 0.f);
-        break;
+        _cameraEye += Speed * glm::vec3(viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1]);
+    break;
 
-    case 'x' :
-        if(_cameraEye.y < 0){
-           if(_cameraEye.y > -(CubeMap.scale - Speed)){
-               _cameraEye = _cameraEye - glm::vec3( 0.f, Speed, 0.f);
-           }
-        }else
-            _cameraEye = _cameraEye - glm::vec3( 0.f, Speed, 0.f);
-        break;
+    case 'x':
+        _cameraEye += -Speed * glm::vec3(viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1]);
+    break;
 
-    default:
-        std::cout << "key " << key << std::endl;
-        break;
     }
+
+    glutPostRedisplay();
 }
 
 
@@ -1009,7 +935,6 @@ void mouse_CB(int button, int state, int x, int y){
         if (state == GLUT_UP)
           isMousePressed = false;
 
-//    const glm::mat4 viewMatrix = glm::lookAt( _cameraEye, _cameraCenter, _cameraUp );
     if((button==GLUT_LEFT_BUTTON)&&(state==GLUT_DOWN)){
 
         //Camera stuff
@@ -1059,6 +984,24 @@ void mouse_CB(int button, int state, int x, int y){
             model.setSelect(-1);
     }
 
+    //ZOOM
+    if(button==3){
+        if(_cameraFovY >= 1.0f && _cameraFovY <= 45.0f)
+          _cameraFovY -= 0.05;
+        if(_cameraFovY <= 1.0f)
+          _cameraFovY = 1.0f;
+        if(_cameraFovY >= 45.0f)
+          _cameraFovY = 45.0f;
+    }else if(button==4){
+        if(_cameraFovY >= 1.0f && _cameraFovY <= 45.0f)
+          _cameraFovY += 0.05;
+        if(_cameraFovY <= 1.0f)
+          _cameraFovY = 1.0f;
+        if(_cameraFovY >= 45.0f)
+          _cameraFovY = 45.0f;
+    }
+
+    glutPostRedisplay();
 }
 
 void mouseMove(int x, int y){
@@ -1069,12 +1012,8 @@ void mouseMove(int x, int y){
 
     const float mouse_Sensitivity = 0.01f;
 
-      if(false)
-          roll   += mouse_Sensitivity * mouse_delta.x;
-      else  {
-          yaw   += mouse_Sensitivity * mouse_delta.x;
-        pitch += mouse_Sensitivity * mouse_delta.y;
-      }
+    yaw   += mouse_Sensitivity * mouse_delta.x;
+    pitch += mouse_Sensitivity * mouse_delta.y;
 
     mouseLastPosition = glm::vec2(x, y);
 

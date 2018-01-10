@@ -10,6 +10,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "AssetLoader.h"
+
+struct Texture {
+    unsigned int id;
+    std::string type;
+};
+
 using namespace std;
 class Model3D{
 public:
@@ -18,6 +24,7 @@ public:
     vector<vector<glm::vec3>> normals;
     vector<vector<unsigned int>> indices;
     vector<vector<glm::vec2>> textures;
+    vector<Texture> AllTexture;
     vector<vector<glm::vec3>> OBBs;
     int nb_mesh;
     vector<glm::mat4> transform;
