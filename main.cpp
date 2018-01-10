@@ -102,6 +102,13 @@ float _cameraZFar;
 
 float Speed = 0.1f;
 
+float yaw = 0;
+float pitch = 0;
+float roll = 0;
+
+bool isMousePressed = false;
+glm::vec2 mouseLastPosition;
+
 // Mesh parameters
 glm::vec3 _meshColor;
 glm::vec3 _materialKd;
@@ -115,6 +122,8 @@ glm::vec3 _lightColor;
 // Data directory
 std::string dataRepository;
 
+
+glm::mat4 viewMatrix =glm::mat4(1.0f);
 /******************************************************************************
  ***************************** TYPE DEFINITION ********************************
  ******************************************************************************/
@@ -553,8 +562,21 @@ void display( void )
     // Camera
     //--------------------------------------------------------------------------------
     // Retrieve camera parameters
-    const glm::mat4 viewMatrix = glm::lookAt( _cameraEye, _cameraCenter, _cameraUp );
     const glm::mat4 projectionMatrix = glm::perspective( _cameraFovY, _cameraAspect, _cameraZNear, _cameraZFar );
+    const glm::mat4 viewMatrix = glm::lookAt(_cameraEye,_cameraCenter,_cameraUp);
+
+    /*glm::mat4 matrixRoll  = glm::mat4(1.0f);
+    glm::mat4 matrixPitch = glm::mat4(1.0f);
+    glm::mat4 matrixYaw   = glm::mat4(1.0f);
+
+    matrixRoll  = glm::rotate(matrixRoll,  roll,  glm::vec3(0.0f, 0.0f, 1.0f));
+    matrixPitch = glm::rotate(matrixPitch, pitch, glm::vec3(1.0f, 0.0f, 0.0f));
+    matrixYaw   = glm::rotate(matrixYaw,  yaw,    glm::vec3(0.0f, 1.0f, 0.0f));
+
+    glm::mat4 rotate = matrixRoll * matrixPitch * matrixYaw;
+    glm::mat4 translate = glm::mat4(1.0f);
+
+    const glm::mat4 viewMatrix = rotate * translate;*/
 
     GLint uniformLocation;
 
@@ -984,8 +1006,18 @@ void special_CB(int key, int x, int y)
 }
 
 void mouse_CB(int button, int state, int x, int y){
+        if (state == GLUT_UP)
+          isMousePressed = false;
+
 //    const glm::mat4 viewMatrix = glm::lookAt( _cameraEye, _cameraCenter, _cameraUp );
     if((button==GLUT_LEFT_BUTTON)&&(state==GLUT_DOWN)){
+
+        //Camera stuff
+        isMousePressed = true;
+        mouseLastPosition.x = x;
+        mouseLastPosition.y = y;
+
+
         GLint m_viewport[4];
 
         glGetIntegerv( GL_VIEWPORT, m_viewport );
@@ -1027,6 +1059,26 @@ void mouse_CB(int button, int state, int x, int y){
             model.setSelect(-1);
     }
 
+}
+
+void mouseMove(int x, int y){
+    if (isMousePressed == false)
+      return;
+
+    glm::vec2 mouse_delta = glm::vec2(x, y) - mouseLastPosition;
+
+    const float mouse_Sensitivity = 0.01f;
+
+      if(false)
+          roll   += mouse_Sensitivity * mouse_delta.x;
+      else  {
+          yaw   += mouse_Sensitivity * mouse_delta.x;
+        pitch += mouse_Sensitivity * mouse_delta.y;
+      }
+
+    mouseLastPosition = glm::vec2(x, y);
+
+    glutPostRedisplay();
 }
 
 /******************************************************************************
@@ -1082,7 +1134,7 @@ int main( int argc, char** argv )
     glutKeyboardFunc(keyboard_CB);
     glutSpecialFunc(special_CB);
     glutMouseFunc(mouse_CB);
-
+    glutMotionFunc(mouseMove);
     // - callback continuously called when events are not being received
     glutIdleFunc( idle );
 

@@ -17,6 +17,11 @@
 #include <assimp/DefaultLogger.hpp>
 #include <assimp/LogStream.hpp>
 
+struct Texture {
+    unsigned int id;
+    std::string type;
+};
+
 class AssetLoader{
 public:
     bool mIsInitialized;
@@ -32,7 +37,7 @@ public:
         _importer = nullptr;
     }
     bool import(const std::string filename);
-    bool loadData(std::vector<std::vector<glm::vec3>>&,std::vector<std::vector<glm::vec3>>&,std::vector<std::vector<unsigned int> > &);
+    bool loadData(std::vector<std::vector<glm::vec3>>&,std::vector<std::vector<glm::vec3>>&,std::vector<std::vector<unsigned int> > &,std::vector<std::vector<glm::vec2>>&);
 };
 
 

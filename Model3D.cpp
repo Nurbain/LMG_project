@@ -10,7 +10,7 @@ Model3D::Model3D(){
 void Model3D::loadMesh(const std::string filename){
     bool statusOk = _Loader->import(filename);
     assert(statusOk);
-    bool loadOk = _Loader->loadData(vertices,normals,indices);
+    bool loadOk = _Loader->loadData(vertices,normals,indices,textures);
 
     assert(loadOk);
     nb_mesh = _Loader->_scene->mNumMeshes;
@@ -31,16 +31,6 @@ void Model3D::loadMesh(const std::string filename){
         auto minMax_z = std::minmax_element(vertices[i].begin(), vertices[i].end(),[](const glm::vec3& v1, const glm::vec3& v2) {
             return v1.z < v2.z;
         });
-
-        OBBs[i].push_back(glm::vec3(minMax_x.first->x,minMax_y.first->y,minMax_z.first->z));
-        OBBs[i].push_back(glm::vec3(minMax_x.second->x,minMax_y.first->y,minMax_z.first->z));
-        OBBs[i].push_back(glm::vec3(minMax_x.first->x,minMax_y.second->y,minMax_z.first->z));
-        OBBs[i].push_back(glm::vec3(minMax_x.second->x,minMax_y.second->y,minMax_z.first->z));
-
-        OBBs[i].push_back(glm::vec3(minMax_x.first->x,minMax_y.first->y,minMax_z.second->z));
-        OBBs[i].push_back(glm::vec3(minMax_x.second->x,minMax_y.first->y,minMax_z.second->z));
-        OBBs[i].push_back(glm::vec3(minMax_x.first->x,minMax_y.second->y,minMax_z.second->z));
-        OBBs[i].push_back(glm::vec3(minMax_x.second->x,minMax_y.second->y,minMax_z.second->z));
 
         aabb_max[i] = glm::vec3(minMax_x.second->x,minMax_y.second->y-abs(minMax_y.first->y-minMax_y.second->y),minMax_z.second->z);
         aabb_min[i] = glm::vec3(minMax_x.first->x,minMax_y.first->y-2*abs(minMax_y.first->y-minMax_y.second->y),minMax_z.first->z);

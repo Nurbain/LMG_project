@@ -32,7 +32,7 @@ bool AssetLoader::import(const std::string filename){
     return true;
 }
 
-bool AssetLoader::loadData(vector<vector<glm::vec3>>& pVertices,vector<vector<glm::vec3>>& pNormales,vector<vector<unsigned int>>& pIndices){
+bool AssetLoader::loadData(vector<vector<glm::vec3>>& pVertices, vector<vector<glm::vec3>>& pNormales, vector<vector<unsigned int>>& pIndices, std::vector<std::vector<glm::vec2> > & pTextures){
     if(!_scene->HasMeshes()){
         return false;
     }
@@ -40,18 +40,28 @@ bool AssetLoader::loadData(vector<vector<glm::vec3>>& pVertices,vector<vector<gl
     pVertices.resize(_scene->mNumMeshes);
     pNormales.resize(_scene->mNumMeshes);
     pIndices.resize(_scene->mNumMeshes);
+    pTextures.resize(_scene->mNumMeshes);
 
     for(unsigned int m=0;m < _scene->mNumMeshes;++m){
         vector<glm::vec3>& vertices = pVertices[m];
         vector<glm::vec3>& normals = pNormales[m];
         vector<unsigned int>& indices = pIndices[m];
+        vector<glm::vec2>& textures = pTextures[m];
 
         const aiMesh* mesh = _scene->mMeshes[m];
         if(mesh->HasPositions()){
             vertices.resize(mesh->mNumVertices);
+            textures.resize(mesh->mNumVertices);
             for(unsigned int v=0;v<mesh->mNumVertices;++v){
                 const aiVector3D& vertex = mesh->mVertices[v];
                 vertices[v] = glm::vec3(vertex.x,vertex.y,vertex.z);
+
+                //Texture Stuff
+                if(mesh->mTextureCoords[0]){
+                    const aiVector3D& tex = mesh->mTextureCoords[0][v];
+                    textures[v] = glm::vec2(tex.x,tex.y);
+                }else
+                    textures[v] = glm::vec2(0.0f,0.0f);
             }
             indices.resize(mesh->mNumFaces * 3);
             int k=0;
