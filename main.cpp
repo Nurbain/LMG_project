@@ -588,6 +588,7 @@ bool initializeShaderProgram()
         "uniform vec3 lightColor;                      \n"
         "// - animation                               \n"
         "uniform float time;                          \n"
+        "uniform sampler2D diffuseTex; \n"
         "                                              \n"
         "// OUTPUT                                     \n"
         "out vec4 vertexColor;                               \n"
@@ -637,6 +638,7 @@ bool initializeShaderProgram()
         "                                               \n"
         "// UNIFORM                                     \n"
         "uniform vec3 meshColor;                        \n"
+
         "                                               \n"
         "// OUTPUT                                      \n"
         "layout( location = 0 ) out vec4 fragmentColor;     \n"
@@ -931,7 +933,16 @@ void display( void )
         // Send uniforms to GPU
         //--------------------------------------------------------------------------------
 
+        // - view matrix
+        /*uniformLocation = glGetUniformLocation( shaderProgram, "diffuseTex" );
+        if ( uniformLocation >= 0 )
+        {
+            glActiveTexture(GL_TEXTURE0); // active proper texture unit before binding
 
+            glUniform1i(uniformLocation, 0);
+            // and finally bind the texture
+            glBindTexture(GL_TEXTURE_2D, model.AllTexture[i][0].id);
+        }*/
         // Camera
         // - view matrix
         uniformLocation = glGetUniformLocation( shaderProgram, "viewMatrix" );

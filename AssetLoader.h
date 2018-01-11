@@ -49,7 +49,7 @@ public:
         _importer = nullptr;
     }
     bool import(const std::string filename);
-    bool loadData(std::vector<std::vector<glm::vec3>>&,std::vector<std::vector<glm::vec3>>&,std::vector<std::vector<unsigned int> > &,std::vector<std::vector<glm::vec2>>&,std::vector<Texture>&,std::vector<GLuint>&);
+    bool loadData(std::vector<std::vector<glm::vec3>>&,std::vector<std::vector<glm::vec3>>&,std::vector<std::vector<unsigned int> > &,std::vector<std::vector<glm::vec2>>&,std::vector<std::vector<Texture>>&,std::vector<GLuint>&);
     std::vector<Texture> getMaterialTextures(aiMaterial *material, aiTextureType type, std::string name);
     int initializeModelTextures();
 };

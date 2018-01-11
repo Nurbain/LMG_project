@@ -32,7 +32,7 @@ bool AssetLoader::import(const std::string filename){
     return true;
 }
 
-bool AssetLoader::loadData(vector<vector<glm::vec3>>& pVertices, vector<vector<glm::vec3>>& pNormales, vector<vector<unsigned int>>& pIndices, std::vector<std::vector<glm::vec2> > & pTextures, std::vector<Texture>& AllTexture,vector<GLuint>& modelTexture){
+bool AssetLoader::loadData(vector<vector<glm::vec3>>& pVertices, vector<vector<glm::vec3>>& pNormales, vector<vector<unsigned int>>& pIndices, std::vector<std::vector<glm::vec2> > & pTextures, vector<std::vector<Texture>>& AllTexture,vector<GLuint>& modelTexture){
     if(!_scene->HasMeshes()){
         return false;
     }
@@ -90,14 +90,18 @@ bool AssetLoader::loadData(vector<vector<glm::vec3>>& pVertices, vector<vector<g
         aiGetMaterialColor(material,AI_MATKEY_COLOR_DIFFUSE,&col);
         modelMeshColor = glm::vec3(col.r,col.g,col.b);
 
-        std::vector<Texture> textures_diffuse = getMaterialTextures(material, aiTextureType_DIFFUSE, "diffuse");
-        AllTexture.insert(AllTexture.end(),textures_diffuse.begin(),textures_diffuse.end());
+       std::vector<Texture> textures_diffuse = getMaterialTextures(material, aiTextureType_DIFFUSE, "diffuse");
+        //AllTexture.insert(AllTexture.end(),textures_diffuse.begin(),textures_diffuse.end());
+       std::cout << "hum " << textures_diffuse.size() << std::endl;
+        AllTexture[m].push_back(textures_diffuse[0]);
+        std::cout << "hum2" << std::endl;
 
         std::vector<Texture> textures_specular = getMaterialTextures(material, aiTextureType_SPECULAR, "specular");
-        AllTexture.insert(AllTexture.end(), textures_specular.begin(), textures_specular.end());
+        //AllTexture[m].push_back(textures_specular[0]);
 
         std::vector<Texture> textures_ambient = getMaterialTextures(material, aiTextureType_AMBIENT, "ambient");
-        AllTexture.insert(AllTexture.end(), textures_ambient.begin(), textures_ambient.end());
+        //AllTexture.insert(AllTexture.end(), textures_ambient.begin(), textures_ambient.end());
+        //AllTexture[m].push_back(textures_ambient[0]);
 
     }
 
@@ -110,6 +114,8 @@ vector<Texture> AssetLoader::getMaterialTextures(aiMaterial *material, aiTexture
 {
     vector<Texture> textures;
     aiString str;
+
+    std::cout << material->GetTextureCount(type) << std::endl;
 
     for(unsigned int i = 0; i < material->GetTextureCount(type); i++)
     {
