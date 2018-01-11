@@ -83,7 +83,6 @@ int numberOfIndices_;
 // Model3D
 Model3D model;
 //Texture
-GLuint modelTexture;
 GLuint mModelShaderProgram;
 
 
@@ -146,8 +145,6 @@ std::string dataRepository;
 
 bool initialize();
 bool checkExtensions();
-bool initializeModelTextures();
-bool initializeModelTShader();
 bool initializeArrayBuffer();
 bool initializeVertexArray();
 bool initializeShaderProgram();
@@ -213,11 +210,6 @@ bool initialize()
         statusOK = initializeVertexArray();
     }
 
-    if ( statusOK )
-    {
-            statusOK = initializeModelTextures();
-    }
-
 
     if ( statusOK )
     {
@@ -279,60 +271,6 @@ bool checkExtensions()
     std::cout << "Check GL extensions..." << std::endl;
 
     return statusOK;
-}
-
-/******************************************************************************
- * Initialize Material & Texture
- ******************************************************************************/
-bool initializeModelTextures(){
-    std::cout << "- initialize model textures..." << std::endl;
-    bool result = true;
-    for(int i = 0; i<model.nb_mesh ; i++){
-    for(vector<Texture>::iterator it = model.AllTexture.begin(); it != model.AllTexture.end(); ++it ){
-
-
-        int textureWidth;
-        int textureHeight;
-
-         std::string textureFilename = model.path;
-
-         unsigned char* image = SOIL_load_image( textureFilename.c_str(), &textureWidth,
-         &textureHeight, 0, SOIL_LOAD_RGB );
-         if(image == NULL){
-             printf(" ---- /* Error loading texture data */ \n");
-             exit(1);
-         }
-
-         glGenTextures(1, &modelTexture);
-
-         // Bind modelTexture
-         glActiveTexture( GL_TEXTURE0 );
-         glBindTexture(GL_TEXTURE_2D, modelTexture);
-
-         // - Filetring: use linear interpolation
-         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-
-         // - wrapping: many modes available (repeat, clam, mirrored_repeat...)
-         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-
-         glTexImage2D(
-             GL_TEXTURE_2D/*target*/,
-             0/*level*/,
-             GL_RGB/*internal format*/,
-             textureWidth, textureHeight, // les dimensions de l’image lue
-             0/*border*/,
-             GL_RGB/*format*/,
-             GL_UNSIGNED_BYTE/*type*/,
-             image/*pixels => le contenu de l’image chargée*/
-         );
-
-         SOIL_free_image_data( image );
-    }
-    }
-
-    return result;
 }
 
 /******************************************************************************

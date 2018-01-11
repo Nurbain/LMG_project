@@ -32,7 +32,7 @@ bool AssetLoader::import(const std::string filename){
     return true;
 }
 
-bool AssetLoader::loadData(vector<vector<glm::vec3>>& pVertices, vector<vector<glm::vec3>>& pNormales, vector<vector<unsigned int>>& pIndices, std::vector<std::vector<glm::vec2> > & pTextures, std::vector<Texture>& AllTexture){
+bool AssetLoader::loadData(vector<vector<glm::vec3>>& pVertices, vector<vector<glm::vec3>>& pNormales, vector<vector<unsigned int>>& pIndices, std::vector<std::vector<glm::vec2> > & pTextures, std::vector<Texture>& AllTexture,vector<GLuint>& modelTexture){
     if(!_scene->HasMeshes()){
         return false;
     }
@@ -118,8 +118,58 @@ vector<Texture> AssetLoader::getMaterialTextures(aiMaterial *material, aiTexture
         Texture tmp;
         tmp.type = name;
         tmp.path = str.C_Str();
+        tmp.id = initializeModelTextures();
         textures.push_back(tmp);
         std::cout <<"textMat : " <<  tmp.path << std::endl;
     }
     return textures;
+}
+
+
+int AssetLoader::initializeModelTextures(){
+    std::cout << "- initialize model textures..." << std::endl;
+
+    unsigned int textureID;
+
+
+    int textureWidth;
+    int textureHeight;
+
+     std::string textureFilename = this->directory;
+
+     unsigned char* image = SOIL_load_image( textureFilename.c_str(), &textureWidth,
+     &textureHeight, 0, SOIL_LOAD_RGB );
+     if(image == NULL){
+         printf(" ---- /* Error loading texture data */ \n");
+         exit(1);
+     }
+
+     glGenTextures(1, &textureID);
+
+     // Bind modelTexture
+     //glActiveTexture( GL_TEXTURE0 );
+     glBindTexture(GL_TEXTURE_2D, textureID);
+
+     // - Filetring: use linear interpolation
+     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+
+     // - wrapping: many modes available (repeat, clam, mirrored_repeat...)
+     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+
+//     glTexImage2D(
+//         GL_TEXTURE_2D/*target*/,
+//         0/*level*/,
+//         GL_RGB/*internal format*/,
+//         textureWidth, textureHeight, // les dimensions de l’image lue
+//         0/*border*/,
+//         GL_RGB/*format*/,
+//         GL_UNSIGNED_BYTE/*type*/,
+//         image/*pixels => le contenu de l’image chargée*/
+//     );
+
+     SOIL_free_image_data( image );
+
+    return textureID;
 }

@@ -10,7 +10,7 @@ Model3D::Model3D(){
 void Model3D::loadMesh(const std::string filename){
     bool statusOk = _Loader->import(filename);
     assert(statusOk);
-    bool loadOk = _Loader->loadData(vertices,normals,indices,textures,AllTexture);
+    bool loadOk = _Loader->loadData(vertices,normals,indices,textures,AllTexture,modelTexture);
 
     assert(loadOk);
     nb_mesh = _Loader->_scene->mNumMeshes;
@@ -36,6 +36,8 @@ void Model3D::loadMesh(const std::string filename){
         aabb_max[i] = glm::vec3(minMax_x.second->x,minMax_y.second->y-abs(minMax_y.first->y-minMax_y.second->y),minMax_z.second->z);
         aabb_min[i] = glm::vec3(minMax_x.first->x,minMax_y.first->y-2*abs(minMax_y.first->y-minMax_y.second->y),minMax_z.first->z);
     }
+
+
 
 
 }

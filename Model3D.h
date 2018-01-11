@@ -4,6 +4,12 @@
 #include <iostream>
 #include <vector>
 
+// - GL
+#ifdef _WIN32
+#include <windows.h>
+#endif
+#include <GL/gl.h>
+#include <GL/glut.h>
 // glm
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -20,6 +26,8 @@ public:
     vector<vector<unsigned int>> indices;
     vector<vector<glm::vec2>> textures;
     vector<Texture> AllTexture;
+    vector<GLuint> modelTexture;
+
 
     std::string path;
     vector<vector<glm::vec3>> OBBs;
