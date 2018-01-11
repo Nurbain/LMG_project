@@ -674,8 +674,8 @@ bool initializeShaderProgram()
         "// MAIN                                        \n"
         "void main( void )                              \n"
         "{                                                  \n"
-        " vec4 diffuse_color = vec4(vec2(uv.s,1.f-uv.t),0,1);\n"
-        "    fragmentColor = diffuse_color;                     \n"
+        //" vec4 diffuse_color = vec4(vec2(uv.s,1.f-uv.t),0,1);\n"
+        "    fragmentColor = vertexColor;                     \n"
         "}                                                  \n"
     };
 
@@ -929,8 +929,8 @@ void display( void )
         // - bind VAO as current vertex array (in OpenGL state machine)
         glBindVertexArray( terrain.mHeigthMapVertexArray );
 
-        glActiveTexture( GL_TEXTURE0 );
-        glBindTexture( GL_TEXTURE_2D, terrain.texture );
+        /*glActiveTexture( GL_TEXTURE0 );
+        glBindTexture( GL_TEXTURE_2D, terrain.texture );*/
         // - draw command
         glDrawElements(
              GL_TRIANGLES,      // mode
@@ -967,12 +967,8 @@ void display( void )
         if ( uniformLocation >= 0 )
         {
             if(model.AllTexture[i][0].size() > 0){
-                glActiveTexture(GL_TEXTURE0); // active proper texture unit before binding
 
                 glUniform1i(uniformLocation, 0);
-                // and finally bind the texture
-                glBindTexture(GL_TEXTURE_2D, model.AllTexture[i][0][0].id);
-                //std::cout << "texture envoye "<< model.AllTexture[i][0][0].id << std::endl;
             }
 
         }
@@ -1060,6 +1056,12 @@ void display( void )
 
         // - bind VAO as current vertex array (in OpenGL state machine)
         glBindVertexArray( vertexArrays[i] );
+
+        glActiveTexture(GL_TEXTURE0); // active proper texture unit before binding
+
+        // and finally bind the texture
+        glBindTexture(GL_TEXTURE_2D, model.AllTexture[i][0][0].id);
+
         // - draw command
         glDrawElements(
              GL_TRIANGLES,      // mode
