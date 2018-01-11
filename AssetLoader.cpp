@@ -62,6 +62,7 @@ bool AssetLoader::loadData(vector<vector<glm::vec3>>& pVertices, vector<vector<g
                 //Texture Stuff
                 if(mesh->mTextureCoords[0]){
                     const aiVector3D& tex = mesh->mTextureCoords[0][v];
+                    std::cout << tex.x << ", " << tex.y << std::endl;
                     textures[v] = glm::vec2(tex.x,tex.y);
                 }else
                     textures[v] = glm::vec2(0.0f,0.0f);
@@ -155,6 +156,8 @@ int AssetLoader::initializeModelTextures(std::string name){
          exit(1);
      }
 
+     //std::cout << image << std::endl;
+
      glGenTextures(1, &textureID);
 
      // Bind modelTexture
@@ -169,16 +172,18 @@ int AssetLoader::initializeModelTextures(std::string name){
      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
 
-//     glTexImage2D(
-//         GL_TEXTURE_2D/*target*/,
-//         0/*level*/,
-//         GL_RGB/*internal format*/,
-//         textureWidth, textureHeight, // les dimensions de l’image lue
-//         0/*border*/,
-//         GL_RGB/*format*/,
-//         GL_UNSIGNED_BYTE/*type*/,
-//         image/*pixels => le contenu de l’image chargée*/
-//     );
+     std::cout << "textureID = " << textureID << std::endl;
+
+     glTexImage2D(
+         GL_TEXTURE_2D/*target*/,
+         0/*level*/,
+         GL_RGB/*internal format*/,
+         textureWidth, textureHeight, // les dimensions de l’image lue
+         0/*border*/,
+         GL_RGB/*format*/,
+         GL_UNSIGNED_BYTE/*type*/,
+         image/*pixels => le contenu de l’image chargée*/
+     );
 
      SOIL_free_image_data( image );
 

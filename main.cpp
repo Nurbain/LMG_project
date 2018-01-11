@@ -500,6 +500,7 @@ bool initializeArrayBuffer()
            // buffer courant : rien
            glBindBuffer( GL_ARRAY_BUFFER, 0 );
 
+
         // Index buffer
         // - this buffer is used to separate topology from positions: send points + send toplogy (triangle: 3 vertex indices)
         glGenBuffers( 1, &indexBuffers[i] );
@@ -593,7 +594,7 @@ bool initializeShaderProgram()
         "// INPUT                                      \n"
         "layout (location = 0) in vec3 position;     \n"
         "layout (location = 1) in vec3 normal;       \n"
-        "layout (location = 3) in vec2 tex;     \n"
+        "layout (location = 2) in vec2 tex;     \n"
         "                                              \n"
         "// UNIFORM                                    \n"
         "// - camera                                   \n"
@@ -611,15 +612,17 @@ bool initializeShaderProgram()
         "uniform vec3 lightColor;                      \n"
         "// - animation                               \n"
         "uniform float time;                          \n"
-        "uniform sampler2D diffuseTex; \n"
+
         "                                              \n"
         "// OUTPUT                                     \n"
         "out vec4 vertexColor;                               \n"
+        "out vec2 uv;\n"
         "                                              \n"
         "// MAIN                                       \n"
         "void main( void )                             \n"
         "{                                             \n"
-        " vec4 diffuse_color = texture(diffuseTex,vec2(tex.s,1.f-tex.t));\n"
+        //" vec4 diffuse_color = texture(diffuseTex,vec2(tex.s,1.f-tex.t));\n"
+        " uv = tex;\n"
         "// Transform data to Eye-space, because this is the space where OpenGL does lighting traditionally \n"
         "// - vertex position                                \n"
         "    vec4 eyePosition = viewMatrix * modelMatrix * vec4( position, 1 );                 \n"
@@ -633,7 +636,7 @@ bool initializeShaderProgram()
         "// - light direction in Eye-space                                                                                       \n"
         "    vec3 L = normalize( eyeLightPosition.xyz - eyePosition.xyz );                      \n"
         "    float diffuse = max( 0.0, dot( eyeNormal, L ) );                                   \n"
-        "    vertexColor = vec4( lightColor, 1.0 ) * diffuse_color * diffuse;                 \n"
+        "    vertexColor = vec4( lightColor, 1.0 ) * vec4( materialKd, 1 ) * diffuse;                 \n"
         //"    vertexColor = vec4( lightColor, 1.0 ) * vec4( materialKd, 1 );                 \n"
         "                                                                                       \n"
         "#if 0                                                                                 \n"
@@ -659,10 +662,11 @@ bool initializeShaderProgram()
         "                                               \n"
         "// INPUT                                       \n"
         "in vec4 vertexColor;                                 \n"
+        "in vec2 uv;\n"
         "                                               \n"
         "// UNIFORM                                     \n"
         "uniform vec3 meshColor;                        \n"
-
+        "uniform sampler2D diffuseTex; \n"
         "                                               \n"
         "// OUTPUT                                      \n"
         "layout( location = 0 ) out vec4 fragmentColor;     \n"
@@ -670,7 +674,8 @@ bool initializeShaderProgram()
         "// MAIN                                        \n"
         "void main( void )                              \n"
         "{                                                  \n"
-        "    fragmentColor = vertexColor;                     \n"
+        " vec4 diffuse_color = vec4(vec2(uv.s,1.f-uv.t),0,1);\n"
+        "    fragmentColor = diffuse_color;                     \n"
         "}                                                  \n"
     };
 
@@ -967,6 +972,7 @@ void display( void )
                 glUniform1i(uniformLocation, 0);
                 // and finally bind the texture
                 glBindTexture(GL_TEXTURE_2D, model.AllTexture[i][0][0].id);
+                //std::cout << "texture envoye "<< model.AllTexture[i][0][0].id << std::endl;
             }
 
         }
