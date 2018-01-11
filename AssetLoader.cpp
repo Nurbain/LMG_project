@@ -9,6 +9,8 @@
 using namespace std;
 bool AssetLoader::import(const std::string filename){
     std::ifstream fin(filename);
+    directory = filename;
+    directory = filename.substr(0, filename.find_last_of('/'));
     if(!fin.fail()){
         fin.close();
     }else{
@@ -32,7 +34,7 @@ bool AssetLoader::import(const std::string filename){
     return true;
 }
 
-bool AssetLoader::loadData(vector<vector<glm::vec3>>& pVertices, vector<vector<glm::vec3>>& pNormales, vector<vector<unsigned int>>& pIndices, std::vector<std::vector<glm::vec2> > & pTextures, vector<std::vector<Texture>>& AllTexture,vector<GLuint>& modelTexture){
+bool AssetLoader::loadData(vector<vector<glm::vec3>>& pVertices, vector<vector<glm::vec3>>& pNormales, vector<vector<unsigned int>>& pIndices, std::vector<std::vector<glm::vec2> > & pTextures, vector<vector<std::vector<Texture>>>& AllTexture,vector<GLuint>& modelTexture){
     if(!_scene->HasMeshes()){
         return false;
     }
@@ -41,6 +43,7 @@ bool AssetLoader::loadData(vector<vector<glm::vec3>>& pVertices, vector<vector<g
     pNormales.resize(_scene->mNumMeshes);
     pIndices.resize(_scene->mNumMeshes);
     pTextures.resize(_scene->mNumMeshes);
+    AllTexture.resize(_scene->mNumMeshes);
 
     for(unsigned int m=0;m < _scene->mNumMeshes;++m){
         vector<glm::vec3>& vertices = pVertices[m];
@@ -93,15 +96,15 @@ bool AssetLoader::loadData(vector<vector<glm::vec3>>& pVertices, vector<vector<g
        std::vector<Texture> textures_diffuse = getMaterialTextures(material, aiTextureType_DIFFUSE, "diffuse");
         //AllTexture.insert(AllTexture.end(),textures_diffuse.begin(),textures_diffuse.end());
        std::cout << "hum " << textures_diffuse.size() << std::endl;
-        AllTexture[m].push_back(textures_diffuse[0]);
+        AllTexture[m].push_back(textures_diffuse);
         std::cout << "hum2" << std::endl;
 
         std::vector<Texture> textures_specular = getMaterialTextures(material, aiTextureType_SPECULAR, "specular");
-        //AllTexture[m].push_back(textures_specular[0]);
+        AllTexture[m].push_back(textures_specular);
 
         std::vector<Texture> textures_ambient = getMaterialTextures(material, aiTextureType_AMBIENT, "ambient");
         //AllTexture.insert(AllTexture.end(), textures_ambient.begin(), textures_ambient.end());
-        //AllTexture[m].push_back(textures_ambient[0]);
+        AllTexture[m].push_back(textures_ambient);
 
     }
 
@@ -124,7 +127,7 @@ vector<Texture> AssetLoader::getMaterialTextures(aiMaterial *material, aiTexture
         Texture tmp;
         tmp.type = name;
         tmp.path = str.C_Str();
-        tmp.id = initializeModelTextures();
+        tmp.id = initializeModelTextures(str.C_Str());
         textures.push_back(tmp);
         std::cout <<"textMat : " <<  tmp.path << std::endl;
     }
@@ -132,7 +135,7 @@ vector<Texture> AssetLoader::getMaterialTextures(aiMaterial *material, aiTexture
 }
 
 
-int AssetLoader::initializeModelTextures(){
+int AssetLoader::initializeModelTextures(std::string name){
     std::cout << "- initialize model textures..." << std::endl;
 
     unsigned int textureID;
@@ -141,11 +144,13 @@ int AssetLoader::initializeModelTextures(){
     int textureWidth;
     int textureHeight;
 
-     std::string textureFilename = this->directory;
+     std::string textureFilename = this->directory + '/' + name;
+     std::cout << textureFilename << std::endl;
 
      unsigned char* image = SOIL_load_image( textureFilename.c_str(), &textureWidth,
      &textureHeight, 0, SOIL_LOAD_RGB );
      if(image == NULL){
+         printf( "SOIL loading error: '%s'\n", SOIL_last_result() );
          printf(" ---- /* Error loading texture data */ \n");
          exit(1);
      }

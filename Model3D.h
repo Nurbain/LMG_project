@@ -25,7 +25,7 @@ public:
     vector<vector<glm::vec3>> normals;
     vector<vector<unsigned int>> indices;
     vector<vector<glm::vec2>> textures;
-    vector<vector<Texture>> AllTexture;
+    vector<vector<vector<Texture>>> AllTexture;
     vector<GLuint> modelTexture;
 
 

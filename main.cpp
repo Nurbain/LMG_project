@@ -71,6 +71,7 @@ std::vector<GLuint> positionBuffers;
 std::vector<GLuint> normalBuffers;
 // VBO (vertex buffer object) : used to store positions index
 std::vector<GLuint> indexBuffers;
+std::vector<GLuint> textureCoordinateBuffers;
 // VAO (vertex array object) : used to encapsulate several VBO
 std::vector<GLuint> vertexArrays;
 
@@ -446,6 +447,7 @@ bool initializeArrayBuffer()
     positionBuffers.resize(model.nb_mesh);
     normalBuffers.resize(model.nb_mesh);
     indexBuffers.resize(model.nb_mesh);
+    textureCoordinateBuffers.resize(model.nb_mesh);
 
     for(int i=0;i<model.nb_mesh;i++){
         // In this example, we want to display one triangle
@@ -453,6 +455,7 @@ bool initializeArrayBuffer()
         // Buffer of positions on CPU (host)
         std::vector< glm::vec3 > points;
         std::vector< glm::vec3 > normals;
+        std::vector < glm::vec2 > textures;
         std::vector< GLuint > triangleIndices;
         //const int nb = 100;
 
@@ -463,6 +466,7 @@ bool initializeArrayBuffer()
         points = model.vertices[i];
         triangleIndices = model.indices[i];
         normals = model.normals[i];
+        textures = model.textures[i];
 
         //Puis on envoie dans le VBO
         numberOfVertices_ = static_cast< int >( points.size() );
@@ -486,6 +490,15 @@ bool initializeArrayBuffer()
         glBufferData( GL_ARRAY_BUFFER, numberOfVertices_ * sizeof( glm::vec3 ), normals.data(), GL_STATIC_DRAW );
         // buffer courant : rien
         glBindBuffer( GL_ARRAY_BUFFER, 0 );
+
+        // Texture coordinates buffer
+           glGenBuffers( 1, &textureCoordinateBuffers[i] );
+           // buffer courant a manipuler
+           glBindBuffer( GL_ARRAY_BUFFER, textureCoordinateBuffers[i] );
+           // definit la taille du buffer et le remplit
+           glBufferData( GL_ARRAY_BUFFER, numberOfVertices_ * sizeof( glm::vec2 ), textures.data(), GL_STATIC_DRAW );
+           // buffer courant : rien
+           glBindBuffer( GL_ARRAY_BUFFER, 0 );
 
         // Index buffer
         // - this buffer is used to separate topology from positions: send points + send toplogy (triangle: 3 vertex indices)
@@ -530,12 +543,21 @@ bool initializeVertexArray()
         // - enable or disable a generic vertex attribute array
         glEnableVertexAttribArray( 0/*index of the generic vertex attribute*/ );
 
+
         // - bind VBO as current buffer (in OpenGL state machine)
         glBindBuffer( GL_ARRAY_BUFFER, normalBuffers[i] );
         // - specify the location and data format of the array of generic vertex attributes at index​ to use when rendering
         glVertexAttribPointer( 1/*index of the generic vertex attribute: VBO index (not its ID!)*/, 3/*nb elements in the attribute: (x,y,z)*/, GL_FLOAT/*type of data*/, GL_FALSE/*normalize data*/, 0/*stride*/, 0/*offset in memory*/ );
         // - enable or disable a generic vertex attribute array
         glEnableVertexAttribArray( 1/*index of the generic vertex attribute*/ );
+
+        // - bind VBO as current buffer (in OpenGL state machine)
+        glBindBuffer( GL_ARRAY_BUFFER, textureCoordinateBuffers[i] );
+        // - specify the location and data format of the array of generic vertex attributes at index​ to use when rendering
+        glVertexAttribPointer( 2/*index of the generic vertex attribute: VBO index (not its ID!)*/, 2/*nb elements in the attribute: (x,y,z)*/, GL_FLOAT/*type of data*/, GL_FALSE/*normalize data*/, 0/*stride*/, 0/*offset in memory*/ );
+        // - enable or disable a generic vertex attribute array
+        glEnableVertexAttribArray( 2/*index of the generic vertex attribute*/ );
+
 
         // Index buffer
         glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, indexBuffers[i] );
@@ -571,6 +593,7 @@ bool initializeShaderProgram()
         "// INPUT                                      \n"
         "layout (location = 0) in vec3 position;     \n"
         "layout (location = 1) in vec3 normal;       \n"
+        "layout (location = 3) in vec2 tex;     \n"
         "                                              \n"
         "// UNIFORM                                    \n"
         "// - camera                                   \n"
@@ -596,6 +619,7 @@ bool initializeShaderProgram()
         "// MAIN                                       \n"
         "void main( void )                             \n"
         "{                                             \n"
+        " vec4 diffuse_color = texture(diffuseTex,vec2(tex.s,1.f-tex.t));\n"
         "// Transform data to Eye-space, because this is the space where OpenGL does lighting traditionally \n"
         "// - vertex position                                \n"
         "    vec4 eyePosition = viewMatrix * modelMatrix * vec4( position, 1 );                 \n"
@@ -609,7 +633,7 @@ bool initializeShaderProgram()
         "// - light direction in Eye-space                                                                                       \n"
         "    vec3 L = normalize( eyeLightPosition.xyz - eyePosition.xyz );                      \n"
         "    float diffuse = max( 0.0, dot( eyeNormal, L ) );                                   \n"
-        "    vertexColor = vec4( lightColor, 1.0 ) * vec4( materialKd, 1 ) * diffuse;                 \n"
+        "    vertexColor = vec4( lightColor, 1.0 ) * diffuse_color * diffuse;                 \n"
         //"    vertexColor = vec4( lightColor, 1.0 ) * vec4( materialKd, 1 );                 \n"
         "                                                                                       \n"
         "#if 0                                                                                 \n"
@@ -934,15 +958,18 @@ void display( void )
         //--------------------------------------------------------------------------------
 
         // - view matrix
-        /*uniformLocation = glGetUniformLocation( shaderProgram, "diffuseTex" );
+        uniformLocation = glGetUniformLocation( shaderProgram, "diffuseTex" );
         if ( uniformLocation >= 0 )
         {
-            glActiveTexture(GL_TEXTURE0); // active proper texture unit before binding
+            if(model.AllTexture[i][0].size() > 0){
+                glActiveTexture(GL_TEXTURE0); // active proper texture unit before binding
 
-            glUniform1i(uniformLocation, 0);
-            // and finally bind the texture
-            glBindTexture(GL_TEXTURE_2D, model.AllTexture[i][0].id);
-        }*/
+                glUniform1i(uniformLocation, 0);
+                // and finally bind the texture
+                glBindTexture(GL_TEXTURE_2D, model.AllTexture[i][0][0].id);
+            }
+
+        }
         // Camera
         // - view matrix
         uniformLocation = glGetUniformLocation( shaderProgram, "viewMatrix" );
