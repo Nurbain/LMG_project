@@ -74,15 +74,18 @@ std::vector<GLuint> indexBuffers;
 // VAO (vertex array object) : used to encapsulate several VBO
 std::vector<GLuint> vertexArrays;
 
-//Texture
-GLuint modelTexture;
-GLuint texture;
+
+
 // Mesh
 int numberOfVertices_;
 int numberOfIndices_;
 
 // Model3D
 Model3D model;
+//Texture
+GLuint modelTexture;
+GLuint mModelShaderProgram;
+
 
 //SkyBox
 SkyBox CubeMap;
@@ -143,7 +146,8 @@ std::string dataRepository;
 
 bool initialize();
 bool checkExtensions();
-bool initializeModelTextures(const char *filename);
+bool initializeModelTextures();
+bool initializeModelTShader();
 bool initializeArrayBuffer();
 bool initializeVertexArray();
 bool initializeShaderProgram();
@@ -211,6 +215,12 @@ bool initialize()
 
     if ( statusOK )
     {
+            statusOK = initializeModelTextures();
+    }
+
+
+    if ( statusOK )
+    {
         statusOK = initializeShaderProgram();
     }
 
@@ -224,10 +234,6 @@ bool initialize()
             statusOK = terrain.initializeHeigthMap();
     }
 
-    if ( statusOK )
-    {
-            //Textures
-    }
 
     initializeCamera();
 
@@ -271,6 +277,222 @@ bool checkExtensions()
     bool statusOK = true;
 
     std::cout << "Check GL extensions..." << std::endl;
+
+    return statusOK;
+}
+
+/******************************************************************************
+ * Initialize Material & Texture
+ ******************************************************************************/
+bool initializeModelTextures(){
+    std::cout << "- initialize model textures..." << std::endl;
+    bool result = true;
+    for(int i = 0; i<model.nb_mesh ; i++){
+    for(vector<Texture>::iterator it = model.AllTexture.begin(); it != model.AllTexture.end(); ++it ){
+
+
+        int textureWidth;
+        int textureHeight;
+
+         std::string textureFilename = model.path;
+
+         unsigned char* image = SOIL_load_image( textureFilename.c_str(), &textureWidth,
+         &textureHeight, 0, SOIL_LOAD_RGB );
+         if(image == NULL){
+             printf(" ---- /* Error loading texture data */ \n");
+             exit(1);
+         }
+
+         glGenTextures(1, &modelTexture);
+
+         // Bind modelTexture
+         glActiveTexture( GL_TEXTURE0 );
+         glBindTexture(GL_TEXTURE_2D, modelTexture);
+
+         // - Filetring: use linear interpolation
+         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+
+         // - wrapping: many modes available (repeat, clam, mirrored_repeat...)
+         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+
+         glTexImage2D(
+             GL_TEXTURE_2D/*target*/,
+             0/*level*/,
+             GL_RGB/*internal format*/,
+             textureWidth, textureHeight, // les dimensions de l’image lue
+             0/*border*/,
+             GL_RGB/*format*/,
+             GL_UNSIGNED_BYTE/*type*/,
+             image/*pixels => le contenu de l’image chargée*/
+         );
+
+         SOIL_free_image_data( image );
+    }
+    }
+
+    return result;
+}
+
+/******************************************************************************
+* Initialize model shader
+******************************************************************************/
+bool initializeModelTShader(){
+    bool statusOK = true;
+
+    std::cout << "- initialize model shader program ..." << std::endl;
+
+    mModelShaderProgram	= glCreateProgram();
+
+    GLuint vertexShader = glCreateShader( GL_VERTEX_SHADER );
+    GLuint fragmentShader = glCreateShader( GL_FRAGMENT_SHADER );
+
+    // Vertex shader
+    const char* vertexShaderSource[] = {
+         "#version 300 es                                   \n"
+         "                                             \n"
+        " // INPUT                                     \n"
+        "layout (location = 0) in vec3 position; \n"
+        "in vec2 textureCoord;\n"
+        "in vec3 normal;                              \n"
+        "                                             \n"
+        " // UNIFORM                                   \n"
+        " // - camera                                  \n"
+        " uniform mat4 viewMatrix;                     \n"
+        " uniform mat4 projectionMatrix;               \n"
+        " // - 3D model                                \n"
+        " uniform mat4 modelMatrix;                    \n"
+        "                                             \n"
+        " // OUTPUT                                    \n"
+        " out vec3 pos;                                 \n"
+        " out vec2 uv;\n"
+        " out vec3 norm;\n"
+        "                                             \n"
+        " // MAIN                                      \n"
+        "void main( void )                             \n"
+        "{                                             \n"
+        "    // Send position to Clip-space                                                     \n"
+        "    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4( position, 1.0 ); \n"
+        "	 pos = position;          \n"
+        "    uv = textureCoord; \n"
+        "    norm = normal;\n"
+        "}                                                                                      \n"
+    };
+
+
+    // Fragment shader
+    const char* fragmentShaderSource[] = {
+         "#version 300 es                                 \n"
+         "                                             \n"
+        " // INPUT                                     \n"
+        " in vec3 pos;                                             \n"
+        " in vec2 uv;\n"
+        " in vec3 norm;\n"
+        "                                             \n"
+        " // UNIFORM                                   \n"
+        " uniform vec3 modelMeshColor;                      \n"
+        "uniform sampler2D meshTexture;\n"
+
+        "const vec3 diffuseColor = vec3(0.7,0.7,0.7);\n"
+        "const vec3 ambientColor=vec3(0.05,0.05,0.05);\n"
+        "const vec3 specularColor=vec3(1.0,1.0,1.0);\n"
+        "                                             \n"
+        " // OUTPUT                                    \n"
+        "layout (location = 0) out vec4 fragmentColor;                     		\n"
+        "                                             \n"
+        " // MAIN                                      \n"
+        "void main( void )                             \n"
+        "{                                             \n"
+        " vec3 normal = normalize(norm);\n"
+        " vec4 color = texture(meshTexture,uv)*vec4(diffuseColor,1.0)*vec4(modelMeshColor,1.0);      \n"
+        " fragmentColor = vec4( color.r, color.g, color.b, 1.0 );     	  \n"
+        "}                                             \n"
+    };
+
+    // Load shader source
+    #if 1
+        // Load from string
+        glShaderSource( vertexShader, 1, vertexShaderSource, nullptr );
+        glShaderSource( fragmentShader, 1, fragmentShaderSource, nullptr );
+    #else
+        // TEST
+        // Load from files
+        const std::string vertexShaderFilename = "skyBox_vert.glsl";
+        std::string vertexShaderFileContent;
+        getFileContent( vertexShaderFilename, vertexShaderFileContent );
+        const char* sourceCode = vertexShaderFileContent.c_str();
+        glShaderSource( vertexShader, 1, &sourceCode, nullptr );
+        glShaderSource( fragmentShader, 1, fragmentShaderSource, nullptr );
+    #endif
+
+    glCompileShader( vertexShader );
+    glCompileShader( fragmentShader );
+
+    GLint compileStatus;
+    glGetShaderiv( vertexShader, GL_COMPILE_STATUS, &compileStatus );
+    if ( compileStatus == GL_FALSE )
+    {
+        std::cout << "Error: vertex shader "<< std::endl;
+
+        GLint logInfoLength = 0;
+        glGetShaderiv( vertexShader, GL_INFO_LOG_LENGTH, &logInfoLength );
+        if ( logInfoLength > 0 )
+        {
+            GLchar* infoLog = new GLchar[ logInfoLength ];
+            GLsizei length = 0;
+            glGetShaderInfoLog( vertexShader, logInfoLength, &length, infoLog );
+            std::cout << infoLog << std::endl;
+        }
+    }
+
+    glGetShaderiv( fragmentShader, GL_COMPILE_STATUS, &compileStatus );
+    if ( compileStatus == GL_FALSE )
+    {
+        std::cout << "Error: fragment shader "<< std::endl;
+
+        GLint logInfoLength = 0;
+        glGetShaderiv( fragmentShader, GL_INFO_LOG_LENGTH, &logInfoLength );
+        if ( logInfoLength > 0 )
+        {
+            GLchar* infoLog = new GLchar[ logInfoLength ];
+            GLsizei length = 0;
+            glGetShaderInfoLog( fragmentShader, logInfoLength, &length, infoLog );
+            std::cout << infoLog << std::endl;
+        }
+    }
+
+    glAttachShader( mModelShaderProgram, vertexShader );
+    glAttachShader( mModelShaderProgram, fragmentShader );
+
+    glLinkProgram( mModelShaderProgram );
+
+    // Check linking status
+    GLint linkStatus = 0;
+    glGetProgramiv( mModelShaderProgram, GL_LINK_STATUS, &linkStatus );
+    if ( linkStatus == GL_FALSE )
+    {
+        // LOG
+        // ...
+
+        GLint logInfoLength = 0;
+        glGetProgramiv( mModelShaderProgram, GL_INFO_LOG_LENGTH, &logInfoLength );
+        if ( logInfoLength > 0 )
+        {
+        // Return information log for program object
+            GLchar* infoLog = new GLchar[ logInfoLength ];
+            GLsizei length = 0;
+            glGetProgramInfoLog( mModelShaderProgram, logInfoLength, &length, infoLog );
+
+            // LOG
+            std::cout << "\nGsShaderProgram::link() - link ERROR" << std::endl;
+            std::cout << infoLog << std::endl;
+
+            delete[] infoLog;
+        }
+
+        return false;
+    }
 
     return statusOK;
 }

@@ -32,7 +32,7 @@ bool AssetLoader::import(const std::string filename){
     return true;
 }
 
-bool AssetLoader::loadData(vector<vector<glm::vec3>>& pVertices, vector<vector<glm::vec3>>& pNormales, vector<vector<unsigned int>>& pIndices, std::vector<std::vector<glm::vec2> > & pTextures){
+bool AssetLoader::loadData(vector<vector<glm::vec3>>& pVertices, vector<vector<glm::vec3>>& pNormales, vector<vector<unsigned int>>& pIndices, std::vector<std::vector<glm::vec2> > & pTextures, std::vector<Texture>& AllTexture){
     if(!_scene->HasMeshes()){
         return false;
     }
@@ -81,6 +81,45 @@ bool AssetLoader::loadData(vector<vector<glm::vec3>>& pVertices, vector<vector<g
             }
         }
 
+
+
+        //Get All material Stuff
+        aiMaterial* material = _scene->mMaterials[mesh->mMaterialIndex];
+        aiColor4D col;
+        glm::vec3 modelMeshColor;
+        aiGetMaterialColor(material,AI_MATKEY_COLOR_DIFFUSE,&col);
+        modelMeshColor = glm::vec3(col.r,col.g,col.b);
+
+        std::vector<Texture> textures_diffuse = getMaterialTextures(material, aiTextureType_DIFFUSE, "diffuse");
+        AllTexture.insert(AllTexture.end(),textures_diffuse.begin(),textures_diffuse.end());
+
+        std::vector<Texture> textures_specular = getMaterialTextures(material, aiTextureType_SPECULAR, "specular");
+        AllTexture.insert(AllTexture.end(), textures_specular.begin(), textures_specular.end());
+
+        std::vector<Texture> textures_ambient = getMaterialTextures(material, aiTextureType_AMBIENT, "ambient");
+        AllTexture.insert(AllTexture.end(), textures_ambient.begin(), textures_ambient.end());
+
     }
+
+
     return true;
+}
+
+
+vector<Texture> AssetLoader::getMaterialTextures(aiMaterial *material, aiTextureType type, std::string name)
+{
+    vector<Texture> textures;
+    aiString str;
+
+    for(unsigned int i = 0; i < material->GetTextureCount(type); i++)
+    {
+        material->GetTexture(type, i, &str);
+
+        Texture tmp;
+        tmp.type = name;
+        tmp.path = str.C_Str();
+        textures.push_back(tmp);
+        std::cout <<"textMat : " <<  tmp.path << std::endl;
+    }
+    return textures;
 }

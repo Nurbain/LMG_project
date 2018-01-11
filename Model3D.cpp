@@ -10,10 +10,11 @@ Model3D::Model3D(){
 void Model3D::loadMesh(const std::string filename){
     bool statusOk = _Loader->import(filename);
     assert(statusOk);
-    bool loadOk = _Loader->loadData(vertices,normals,indices,textures);
+    bool loadOk = _Loader->loadData(vertices,normals,indices,textures,AllTexture);
 
     assert(loadOk);
     nb_mesh = _Loader->_scene->mNumMeshes;
+    path = filename;
     OBBs.resize(nb_mesh);
     aabb_min.resize(nb_mesh);
     aabb_max.resize(nb_mesh);

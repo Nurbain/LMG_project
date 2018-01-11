@@ -11,11 +11,6 @@
 
 #include "AssetLoader.h"
 
-struct Texture {
-    unsigned int id;
-    std::string type;
-};
-
 using namespace std;
 class Model3D{
 public:
@@ -25,6 +20,8 @@ public:
     vector<vector<unsigned int>> indices;
     vector<vector<glm::vec2>> textures;
     vector<Texture> AllTexture;
+
+    std::string path;
     vector<vector<glm::vec3>> OBBs;
     int nb_mesh;
     vector<glm::mat4> transform;
