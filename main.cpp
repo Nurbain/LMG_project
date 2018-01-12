@@ -130,8 +130,10 @@ glm::vec3 _lightColor;
 // Data directory
 std::string dataRepository;
 
-
-
+int meshSelect = -1;
+int scaleMode = 0;
+int rotateMode = 0;
+int translateMode = 0;
 /******************************************************************************
  ***************************** TYPE DEFINITION ********************************
  ******************************************************************************/
@@ -1120,6 +1122,42 @@ void keyboard_CB(unsigned char key, int x, int y)
         _cameraEye += -Speed * glm::vec3(viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1]);
     break;
 
+    case '\t':
+        if(model.nb_mesh-1 == meshSelect || meshSelect < 0){
+            meshSelect = 0;
+            model.setSelect(meshSelect);
+        }else{
+            meshSelect++;
+            model.setSelect(meshSelect);
+        }
+        std::cout << "mesh "<< meshSelect << std::endl;
+        break;
+
+
+    case 'e':
+        if(scaleMode==0){
+            scaleMode=1;
+            rotateMode =0;
+            translateMode=0;
+        }
+        break;
+
+    case 'r':
+        if(rotateMode==0){
+            scaleMode=0;
+            rotateMode =1;
+            translateMode=0;
+        }
+        break;
+
+    case 't':
+        if(translateMode==0){
+            scaleMode=0;
+            rotateMode =0;
+            translateMode=1;
+        }
+        break;
+
     }
 
     glutPostRedisplay();
@@ -1130,6 +1168,22 @@ void keyboard_CB(unsigned char key, int x, int y)
 void special_CB(int key, int x, int y)
 {
     switch (key) {
+
+    case 100:
+        std::cout << "Gauche"  << std::endl;
+        break;
+
+    case 101:
+        std::cout << "top"  << std::endl;
+        break;
+
+    case 102:
+        std::cout << "droite " << std::endl;
+        break;
+
+    case 103:
+        std::cout << "bas "  << std::endl;
+        break;
 
     default:
         std::cout << "key " << key << std::endl;
