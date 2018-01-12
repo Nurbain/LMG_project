@@ -134,6 +134,7 @@ int meshSelect = -1;
 int scaleMode = 0;
 int rotateMode = 0;
 int translateMode = 0;
+float xAxe = 0, yAxe=0, zAxe=0;
 /******************************************************************************
  ***************************** TYPE DEFINITION ********************************
  ******************************************************************************/
@@ -592,68 +593,67 @@ bool initializeShaderProgram()
     // Vertex shader
     const char* vertexShaderSource[] = {
         "#version 300 es                             \n"
-        "                                              \n"
-        "// INPUT                                      \n"
-        "layout (location = 0) in vec3 position;     \n"
-        "layout (location = 1) in vec3 normal;       \n"
-        "layout (location = 2) in vec2 tex;     \n"
-        "                                              \n"
-        "// UNIFORM                                    \n"
-        "// - camera                                   \n"
-        "uniform mat4 viewMatrix;                      \n"
-        "uniform mat4 projectionMatrix;                \n"
-        "// - 3D model                                 \n"
-        "uniform mat4 modelMatrix;                     \n"
-        "uniform mat3 normalMatrix;                    \n"
-        "// - material                                 \n"
-        "uniform vec3 materialKd;                      \n"
-        "uniform vec3 materialKs;                      \n"
-        "uniform float materialShininess;              \n"
-        "// - light                                    \n"
-        "uniform vec3 lightPosition;                   \n"
-        "uniform vec3 lightColor;                      \n"
-        "// - animation                               \n"
-        "uniform float time;                          \n"
-
-        "                                              \n"
-        "// OUTPUT                                     \n"
-        "out vec4 vertexColor;                               \n"
-        "out vec2 uv;\n"
-        "                                              \n"
-        "// MAIN                                       \n"
-        "void main( void )                             \n"
-        "{                                             \n"
-        //" vec4 diffuse_color = texture(diffuseTex,vec2(tex.s,1.f-tex.t));\n"
-        " uv = tex;\n"
-        "// Transform data to Eye-space, because this is the space where OpenGL does lighting traditionally \n"
-        "// - vertex position                                \n"
-        "    vec4 eyePosition = viewMatrix * modelMatrix * vec4( position, 1 );                 \n"
-        "// - normal                                \n"
-        "    vec3 eyeNormal = normalize( normalMatrix * normal );                               \n"
-        "// - light position [already expressed in Object or World space : it depends of what you want]                    \n"
-        //"    vec4 eyeLightPosition = viewMatrix * modelMatrix * vec4( lightPosition, 1 );       \n"
-        "    vec4 eyeLightPosition = viewMatrix * vec4( lightPosition, 1 );       \n"
-        "                                                                                       \n"
-        "// Compute diffuse lighting coefficient                                                                                       \n"
-        "// - light direction in Eye-space                                                                                       \n"
-        "    vec3 L = normalize( eyeLightPosition.xyz - eyePosition.xyz );                      \n"
-        "    float diffuse = max( 0.0, dot( eyeNormal, L ) );                                   \n"
-        "    vertexColor = vec4( lightColor, 1.0 ) * vec4( materialKd, 1 ) * diffuse;                 \n"
-        //"    vertexColor = vec4( lightColor, 1.0 ) * vec4( materialKd, 1 );                 \n"
-        "                                                                                       \n"
-        "#if 0                                                                                 \n"
-        "    // Use animation                                                                   \n"
-        "    float amplitude = 1.0;                                                             \n"
-        "    float frequency = 0.5;                                                             \n"
-        "    float height = amplitude * sin( 2.0 * 3.141592 * frequency * ( time * 0.001 ) );   \n"
-        "    vec3 pos = vec3( position.x, position.y + height, position.z );                    \n"
-        "    // Send position to Clip-space                                                     \n"
-        "    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4( pos, 1.0 );      \n"
-        "#else                                                                                  \n"
-        "    // Send position to Clip-space                                                     \n"
-        "    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4( position, 1.0 ); \n"
-        "#endif                                                                                 \n"
-        "}                                                                                      \n"
+                "                                              \n"
+                "// INPUT                                      \n"
+                "layout (location = 0) in vec3 position;     \n"
+                "layout (location = 1) in vec3 normal;       \n"
+                "layout (location = 2) in vec2 tex;     \n"
+                "                                              \n"
+                "// UNIFORM                                    \n"
+                "// - camera                                   \n"
+                "uniform mat4 viewMatrix;                      \n"
+                "uniform mat4 projectionMatrix;                \n"
+                "// - 3D model                                 \n"
+                "uniform mat4 modelMatrix;                     \n"
+                "uniform mat3 normalMatrix;                    \n"
+                "// - material                                 \n"
+                "uniform vec3 materialKd;                      \n"
+                "uniform vec3 materialKs;                      \n"
+                "uniform float materialShininess;              \n"
+                "// - light                                    \n"
+                "uniform vec3 lightPosition;                   \n"
+                "uniform vec3 lightColor;                      \n"
+                "// - animation                               \n"
+                "uniform float time;                          \n"
+                "                                              \n"
+                "// OUTPUT                                     \n"
+                "out vec4 vertexColor;                               \n"
+                "out vec2 uv;\n"
+                "                                              \n"
+                "// MAIN                                       \n"
+                "void main( void )                             \n"
+                "{                                             \n"
+                //" vec4 diffuse_color = texture(diffuseTex,vec2(tex.s,1.f-tex.t));\n"
+                " uv = tex;\n"
+                "// Transform data to Eye-space, because this is the space where OpenGL does lighting traditionally \n"
+                "// - vertex position                                \n"
+                "    vec4 eyePosition = viewMatrix * modelMatrix * vec4( position, 1 );                 \n"
+                "// - normal                                \n"
+                "    vec3 eyeNormal = normalize( normalMatrix * normal );                               \n"
+                "// - light position [already expressed in Object or World space : it depends of what you want]                    \n"
+                //"    vec4 eyeLightPosition = viewMatrix * modelMatrix * vec4( lightPosition, 1 );       \n"
+                "    vec4 eyeLightPosition = viewMatrix * vec4( lightPosition, 1 );       \n"
+                "                                                                                       \n"
+                "// Compute diffuse lighting coefficient                                                                                       \n"
+                "// - light direction in Eye-space                                                                                       \n"
+                "    vec3 L = normalize( eyeLightPosition.xyz - eyePosition.xyz );                      \n"
+                "    float diffuse = max( 0.0, dot( eyeNormal, L ) );                                   \n"
+                "    vertexColor = vec4( lightColor, 1.0 ) * vec4( materialKd, 1 ) * diffuse;                 \n"
+                //"    vertexColor = vec4( lightColor, 1.0 ) * vec4( materialKd, 1 );                 \n"
+                "                                                                                       \n"
+                "#if 0                                                                                 \n"
+                "    // Use animation                                                                   \n"
+                "    float amplitude = 1.0;                                                             \n"
+                "    float frequency = 0.5;                                                             \n"
+                "    float height = amplitude * sin( 2.0 * 3.141592 * frequency * ( time * 0.001 ) );   \n"
+                "    vec3 pos = vec3( position.x, position.y + height, position.z );                    \n"
+                "    // Send position to Clip-space                                                     \n"
+                "    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4( pos, 1.0 );      \n"
+                "#else                                                                                  \n"
+                "    // Send position to Clip-space                                                     \n"
+                "    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4( position, 1.0 ); \n"
+                "#endif                                                                                 \n"
+        "}                                                                                    \n"
     };
 
     // Fragment shader
@@ -1049,7 +1049,6 @@ void display( void )
             glUniform1f( uniformLocation, static_cast< float >( currentTime ) );
         }
 
-
         //--------------------------------------------------------------------------------
         // Render scene
         //--------------------------------------------------------------------------------
@@ -1135,30 +1134,91 @@ void keyboard_CB(unsigned char key, int x, int y)
 
 
     case 'e':
-        if(scaleMode==0){
+        if(scaleMode==0 && meshSelect != -1){
             scaleMode=1;
             rotateMode =0;
             translateMode=0;
         }
+        std::cout << "Mode Scale "<< meshSelect << std::endl;
         break;
 
     case 'r':
-        if(rotateMode==0){
+        if(rotateMode==0 && meshSelect != -1){
             scaleMode=0;
             rotateMode =1;
             translateMode=0;
         }
+        std::cout << "Mode Rotate "<< meshSelect << std::endl;
         break;
 
     case 't':
-        if(translateMode==0){
+        if(translateMode==0 && meshSelect != -1){
             scaleMode=0;
             rotateMode =0;
             translateMode=1;
         }
+        std::cout << "Mode Translate " << std::endl;
         break;
 
+    case 'i':
+            if(xAxe == 0){
+                xAxe = 1;
+                std::cout << "Axe X actif " << std::endl;
+            }else{
+                xAxe= 0;
+                std::cout << "Axe X desactif " << std::endl;
+            }
+        break;
+
+    case 'o':
+        if(yAxe == 0){
+            yAxe = 1;
+            std::cout << "Axe Y actif " << std::endl;
+        }else{
+            yAxe= 0;
+            std::cout << "Axe Y desactif " << std::endl;
+        }
+
+        break;
+    case 'p':
+        if(zAxe == 0){
+            zAxe = 1;
+            std::cout << "Axe Z actif " << std::endl;
+        }else{
+            std::cout << "Axe Z desactif " << std::endl;
+            zAxe= 0;
+        }
+        break;
+
+    case '+':
+        if(meshSelect != -1){
+            glm::mat4 trans;
+            if(translateMode == 1){
+                trans = glm::translate(trans, glm::vec3(xAxe,yAxe,zAxe));
+            }else if (rotateMode ==1){
+                trans = glm::rotate(trans, glm::radians(10.f) ,glm::vec3(xAxe,yAxe,zAxe));
+            }else if (scaleMode ==1){
+                trans = glm::scale(trans, glm::vec3(xAxe/2,yAxe/2,zAxe/2));
+            }
+            model.transform[meshSelect] = trans;
+        }
+        break;
+
+    case '-':
+        if(meshSelect != -1){
+            glm::mat4 trans;
+            if(translateMode == 1){
+                trans = glm::translate(trans, glm::vec3(-xAxe,-yAxe,-zAxe));
+            }else if (rotateMode ==1){
+                trans = glm::rotate(trans, glm::radians(-10.f) ,glm::vec3(xAxe,yAxe,zAxe));
+            }else if (scaleMode ==1){
+                trans = glm::scale(trans, glm::vec3(-xAxe/2,-yAxe/2,-zAxe/2));
+            }
+            model.transform[meshSelect] = trans;
+        }
+        break;
     }
+
 
     glutPostRedisplay();
 }
@@ -1201,8 +1261,8 @@ void mouse_CB(int button, int state, int x, int y){
         isMousePressed = true;
         mouseLastPosition.x = x;
         mouseLastPosition.y = y;
-
-
+    }
+/*
         GLint m_viewport[4];
 
         glGetIntegerv( GL_VIEWPORT, m_viewport );
@@ -1242,7 +1302,7 @@ void mouse_CB(int button, int state, int x, int y){
         }
         if(!isSelected)
             model.setSelect(-1);
-    }
+    }*/
 
     //ZOOM
     if(button==3){

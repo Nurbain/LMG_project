@@ -28,7 +28,6 @@ public:
     vector<vector<vector<Texture>>> AllTexture;
     vector<GLuint> modelTexture;
 
-
     std::string path;
     vector<vector<glm::vec3>> OBBs;
     int nb_mesh;
