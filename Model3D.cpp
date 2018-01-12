@@ -21,7 +21,7 @@ void Model3D::loadMesh(const std::string filename){
     transform.resize(nb_mesh);
 
     for(int i=0;i<nb_mesh;i++){
-        glm::mat4 transMatrix   = glm::mat4(1.0f);
+        glm::mat4 transMatrix   = glm::mat4();
         transform[i]=transMatrix;
 
         auto minMax_x = std::minmax_element(vertices[i].begin(), vertices[i].end(),[](const glm::vec3& v1, const glm::vec3& v2) {

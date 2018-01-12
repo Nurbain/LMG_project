@@ -992,7 +992,7 @@ void display( void )
         uniformLocation = glGetUniformLocation( shaderProgram, "modelMatrix" );
         if ( uniformLocation >= 0 )
         {
-            glUniformMatrix4fv( uniformLocation, 1, GL_FALSE, glm::value_ptr( modelMatrix ) );
+            glUniformMatrix4fv( uniformLocation, 1, GL_FALSE, glm::value_ptr( model.transform[i] ) );
         }
         // - normal matrix
         uniformLocation = glGetUniformLocation( shaderProgram, "normalMatrix" );
@@ -1194,11 +1194,11 @@ void keyboard_CB(unsigned char key, int x, int y)
         if(meshSelect != -1){
             glm::mat4 trans;
             if(translateMode == 1){
-                trans = glm::translate(trans, glm::vec3(xAxe,yAxe,zAxe));
+                trans = glm::translate(model.transform[model.selectedModel], glm::vec3(xAxe,yAxe,zAxe));
             }else if (rotateMode ==1){
-                trans = glm::rotate(trans, glm::radians(10.f) ,glm::vec3(xAxe,yAxe,zAxe));
+                trans = glm::rotate(model.transform[model.selectedModel], glm::radians(10.f) ,glm::vec3(xAxe,yAxe,zAxe));
             }else if (scaleMode ==1){
-                trans = glm::scale(trans, glm::vec3(xAxe/2,yAxe/2,zAxe/2));
+                trans = glm::scale(model.transform[model.selectedModel], glm::vec3(1+xAxe/2,1+yAxe/2,1+zAxe/2));
             }
             model.transform[meshSelect] = trans;
         }
@@ -1208,11 +1208,11 @@ void keyboard_CB(unsigned char key, int x, int y)
         if(meshSelect != -1){
             glm::mat4 trans;
             if(translateMode == 1){
-                trans = glm::translate(trans, glm::vec3(-xAxe,-yAxe,-zAxe));
+                trans = glm::translate(model.transform[model.selectedModel], glm::vec3(-xAxe,-yAxe,-zAxe));
             }else if (rotateMode ==1){
-                trans = glm::rotate(trans, glm::radians(-10.f) ,glm::vec3(xAxe,yAxe,zAxe));
+                trans = glm::rotate(model.transform[model.selectedModel], glm::radians(-10.f) ,glm::vec3(xAxe,yAxe,zAxe));
             }else if (scaleMode ==1){
-                trans = glm::scale(trans, glm::vec3(-xAxe/2,-yAxe/2,-zAxe/2));
+                trans = glm::scale(model.transform[model.selectedModel], glm::vec3(1-xAxe/2,1-yAxe/2,1-zAxe/2));
             }
             model.transform[meshSelect] = trans;
         }
